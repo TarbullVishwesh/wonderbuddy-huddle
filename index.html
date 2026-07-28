@@ -267,7 +267,7 @@
       <span><b>Buy Box %, Sessions &amp; Page Views sync one day after the sale</b> (shown “—” for yesterday). <b>FBA Inventory</b> is a live snapshot — no day comparison. <b>BSR</b> is a manual snapshot (not in the feed) — verify &amp; update.</span></div>
     <div id="lines"></div>
 
-    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Inventory Overview</span><span class="rule"></span><span class="hint">FBA network · as of 2026-07-25</span></div>
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Inventory Overview</span><span class="rule"></span><span class="hint">FBA network · as of 2026-07-26</span></div>
     <div class="inv-toolbar">
       <label for="invFilter">View</label>
       <select id="invFilter" class="inv-select" onchange="renderInventory()"></select>
@@ -729,7 +729,9 @@ function salesScopeSkus(scope){ if(scope==="ALL")return ALL_SKUS.filter(s=>RUN_R
 /* ---- team-shared in-transit tracker via Google Sheet (Apps Script Web App) ----
    Paste your Apps Script /exec URL into SHEET_API below to enable team sync.
    Leave blank and it stays in-memory (fine for previewing). ---- */
-const SHEET_API="https://script.google.com/a/macros/tarbull.com/s/AKfycbwVXVoFRMB5eqDg3u8DQjZmKSbNxYeuTmu4ki6D43szRYxcZ8-LvicG-IF1bnE_Vp_A/exec"; // Apps Script Web App URL
+const SHEET_API="https://script.google.com/macros/s/AKfycbwVXVoFRMB5eqDg3u8DQjZmKSbNxYeuTmu4ki6D43szRYxcZ8-LvicG-IF1bnE_Vp_A/exec"; // Apps Script Web App URL (Anyone)
+const SHEET_TOKEN="wb_k7Qm2Rx9Lp4Tn8"; // must match TOKEN in Apps Script
+const TK="&token="+encodeURIComponent(SHEET_TOKEN);
 let _memT={};
 const tkey=(r,s)=>r+'|'+s;
 const cssId=(r,s)=>(r+'_'+s).replace(/[^a-z0-9]/gi,'_');
@@ -737,12 +739,12 @@ const loadT=()=>_memT;
 function inTransit(r,s){ return !!_memT[tkey(r,s)]; }
 async function refreshTransit(){
   if(!SHEET_API) return;
-  try{ const res=await fetch(SHEET_API+'?action=list'); const arr=await res.json(); const m={};
+  try{ const res=await fetch(SHEET_API+'?action=list'+TK); const arr=await res.json(); const m={};
     (arr||[]).forEach(e=>{ if(e&&e.key) m[e.key]={qty:+e.qty||0,fbaId:e.fbaId||'',reason:e.reason||'',markedInv:+e.markedInv||0,date:+e.date||Date.now()}; });
     _memT=m;
   }catch(e){/* offline / not configured — keep current */}
 }
-function postT(p){ if(!SHEET_API) return; try{ fetch(SHEET_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}); }catch(e){} }
+function postT(p){ if(!SHEET_API) return; try{ fetch(SHEET_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({token:SHEET_TOKEN},p))}); }catch(e){} }
 function autoClearTransit(){ const now=Date.now();
   Object.keys(_memT).forEach(k=>{const [r,s]=k.split('|'); const e=_memT[k];
     const arrived=qy(r,s)>=(e.markedInv||0)+(e.qty||0);
@@ -904,9 +906,9 @@ async function refreshReviews(){
   if(!SHEET_API) return;
   try{
     const [rvd,br,cp]=await Promise.all([
-      fetch(SHEET_API+'?action=reviews').then(r=>r.json()).catch(()=>[]),
-      fetch(SHEET_API+'?action=badreviews').then(r=>r.json()).catch(()=>[]),
-      fetch(SHEET_API+'?action=competitors').then(r=>r.json()).catch(()=>[])
+      fetch(SHEET_API+'?action=reviews'+TK).then(r=>r.json()).catch(()=>[]),
+      fetch(SHEET_API+'?action=badreviews'+TK).then(r=>r.json()).catch(()=>[]),
+      fetch(SHEET_API+'?action=competitors'+TK).then(r=>r.json()).catch(()=>[])
     ]);
     REVIEWS={}; (rvd||[]).forEach(x=>{ if(x.asin) REVIEWS[String(x.asin).trim()]=x; });
     BADREV=br||[]; COMPETITORS=cp||[];
