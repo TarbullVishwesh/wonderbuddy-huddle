@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WonderBuddy · Daily Huddle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{
+    --red:#C32329; --cream:#F9F3E6; --cream-2:#F2E9D4;
+    --yellow:#FEDC33; --yellow-soft:#FFF1B9;
+    --teal:#2E7F77; --teal-light:#60C5BD; --pink:#ED257F;
+    --ink:#2B2622; --ink-soft:#6F655B; --ink-faint:#A99E8E;
+    --card:#FFFFFF; --line:#EADFCB;
+    --up:#1E8E5A; --up-bg:#E6F4EC; --down:#D8382F; --down-bg:#FBE9E7;
+    --radius:20px;
+    --shadow:0 1px 2px rgba(43,38,34,.05), 0 10px 30px -14px rgba(43,38,34,.18);
+    --shadow-sm:0 1px 2px rgba(43,38,34,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'Quicksand',system-ui,sans-serif;
+    background:radial-gradient(1200px 500px at 88% -8%, rgba(254,220,51,.16), transparent 60%),radial-gradient(900px 500px at -6% 4%, rgba(96,197,189,.12), transparent 55%),var(--cream);
+    background-attachment:fixed;color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 26px 72px}
+  h1,h2,.display{font-family:'Poppins',sans-serif}
+
+  header{position:sticky;top:0;z-index:40;background:rgba(249,243,230,.82);backdrop-filter:saturate(1.5) blur(12px);border-bottom:1px solid var(--line)}
+  .head-inner{max-width:1320px;margin:0 auto;padding:15px 26px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px;margin-right:auto}
+  .brand img{height:48px;width:auto;display:block}
+  .brand .titles{display:flex;flex-direction:column;line-height:1.12}
+  .brand .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red)}
+  .brand h1{font-weight:600;font-size:19px;letter-spacing:.2px;margin-top:2px}
+  .tabs{display:flex;gap:6px;background:var(--cream-2);padding:5px;border-radius:15px;box-shadow:inset 0 1px 2px rgba(43,38,34,.05)}
+  .tab{font-family:'Poppins',sans-serif;font-weight:500;font-size:14px;border:0;background:transparent;color:var(--ink-soft);padding:9px 18px;border-radius:11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .18s}
+  .tab .flag{font-size:15px}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--card);color:var(--red);box-shadow:var(--shadow-sm)}
+  .tab .soon{font-size:9px;font-weight:700;letter-spacing:.06em;background:var(--yellow);color:#6a5500;padding:2px 6px;border-radius:6px;text-transform:uppercase}
+  .meta{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right}
+  .meta .day{font-family:'Poppins',sans-serif;font-weight:600;font-size:15px}
+  .meta .stamp{font-size:11px;color:var(--ink-faint)} .meta .stamp b{color:var(--ink-soft);font-weight:600}
+
+  .section-head{display:flex;align-items:center;gap:12px;margin:34px 2px 16px}
+  .section-head .star{width:20px;height:20px;color:var(--yellow);flex:none}
+  .section-head .n{font-family:'Poppins',sans-serif;font-weight:600;font-size:17px;position:relative}
+  .section-head .n::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:6px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='6' viewBox='0 0 80 6'><path d='M1 3 Q 6 0.5 11 3 T 21 3 T 31 3 T 41 3 T 51 3 T 61 3 T 71 3 T 79 3' fill='none' stroke='%23FEDC33' stroke-width='2' stroke-linecap='round'/></svg>") repeat-x left bottom}
+  .section-head .rule{flex:1;height:1px;background:var(--line)}
+  .section-head .hint{font-size:11.5px;color:var(--ink-faint);font-weight:600}
+  .subnav{display:flex;flex-wrap:wrap;gap:8px;margin:18px 2px 22px}
+  .spill{font-family:'Quicksand',sans-serif;font-weight:700;font-size:13.5px;color:var(--ink-soft);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 18px;cursor:pointer;transition:.15s}
+  .spill:hover{border-color:var(--teal-light)}
+  .spill[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .linepage .line-head{margin-top:6px}
+  .hidden{display:none!important}
+  .bd-wrap{margin-top:26px}
+  .bd-head{margin-top:30px}
+  .bd-card .val{font-size:20px}
+  .bd-mini{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:11px;color:var(--ink-soft)}
+  .bd-mini b{font-family:'Poppins',sans-serif;color:var(--ink);font-weight:600}
+  .bd-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+
+  .line-head{display:flex;align-items:center;gap:12px;margin:40px 2px 14px;padding-top:8px}
+  .line-chip{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;color:#fff;background:var(--chip,var(--red));padding:7px 16px;border-radius:12px;letter-spacing:.3px;box-shadow:var(--shadow-sm)}
+  .line-count{font-size:12px;color:var(--ink-soft);font-weight:600}
+  .line-head .rule{flex:1;height:2px;border-radius:2px;background:var(--chip,var(--red));opacity:.18}
+
+  .hero{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .htile{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+  .htile.red{--tint:var(--red)} .htile.teal{--tint:var(--teal)} .htile.pink{--tint:var(--pink)}
+  .htile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--tint)}
+  .htile .lbl{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--ink-soft);text-transform:uppercase}
+  .htile .dot{width:8px;height:8px;border-radius:3px;background:var(--tint)}
+  .htile .val{font-family:'Poppins',sans-serif;font-weight:700;font-size:40px;margin-top:12px;letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1}
+  .htile .foot{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .htile .prev{font-size:12px;color:var(--ink-faint)} .htile .prev b{color:var(--ink-soft);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
+  .card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 13px;box-shadow:var(--shadow-sm);transition:transform .16s,box-shadow .16s}
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc,var(--line))}
+  .card .lbl{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--ink-soft);text-transform:uppercase}
+  .card .val{font-family:'Poppins',sans-serif;font-weight:600;font-size:21px;margin-top:7px;letter-spacing:-.4px;font-variant-numeric:tabular-nums;line-height:1.05}
+  .card .row{display:flex;align-items:center;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .card .prev{font-size:10.5px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+  .card.lagging .val{color:var(--ink-faint)}
+  .now-tag{font-size:9.5px;font-weight:700;color:#5a5148;background:var(--cream-2);border:1px solid var(--line);padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em}
+
+  .delta{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 7px 2px 5px;border-radius:7px;white-space:nowrap}
+  .delta.up{color:var(--up);background:var(--up-bg)} .delta.down{color:var(--down);background:var(--down-bg)} .delta.flat{color:var(--ink-faint);background:var(--cream-2)}
+  .delta svg{width:11px;height:11px;flex:none}
+  .lag-tag{font-size:9.5px;font-weight:700;color:#8a6d00;background:var(--yellow-soft);border:1px solid #EBD37A;padding:2px 6px;border-radius:6px;text-transform:uppercase}
+
+  /* table — single sticky header, horizontal scroll via max-content width */
+  .tbl-wrap{margin-top:14px;border:1px solid var(--line);border-radius:16px;overflow:auto;background:var(--card);box-shadow:var(--shadow-sm);-webkit-overflow-scrolling:touch}
+  table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}
+  thead th{position:sticky;top:0;z-index:3;background:var(--cream-2);font-family:'Poppins',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.02em;color:var(--ink-soft);text-transform:uppercase;text-align:right;padding:11px 12px;white-space:nowrap;border-bottom:1px solid var(--line)}
+  th.sku,td.sku{position:sticky;left:0;z-index:2;text-align:left;background:var(--card);border-right:1px solid var(--line);min-width:158px}
+  th.sku{z-index:5;background:var(--cream-2);font-family:'Poppins',sans-serif}
+  td.sku{font-family:'Poppins',sans-serif}
+  th.bsr-h{text-align:left}
+  tbody td{padding:9px 12px;text-align:right;font-size:12px;border-bottom:1px solid #F2ECDF;white-space:nowrap;vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FCFAF4} tbody tr:hover td.sku{background:#FCFAF4}
+  td.sku .nm{font-weight:600;font-size:12.5px;color:var(--ink)} td.sku .as{font-size:10px;color:var(--ink-faint);font-weight:500;font-family:'Quicksand',sans-serif}
+  .cell1{font-weight:700;color:var(--ink)}
+  .cell2{display:flex;align-items:center;gap:4px;justify-content:flex-end;font-size:10.5px;color:var(--ink-faint);margin-top:2px}
+  .cell2 .ar{width:9px;height:9px;display:inline-flex;flex:none} .cell2 .ar svg{width:9px;height:9px} .cell2 .g{color:var(--up)} .cell2 .b{color:var(--down)}
+  td.lag .cell1{color:var(--ink-faint)}
+  td.inv .cell1{color:var(--teal)} td.inv .cell2{color:var(--ink-faint)}
+  td.bsr{text-align:left;font-size:11px;line-height:1.35;color:var(--ink-soft);min-width:118px}
+  td.bsr .cat{color:var(--ink-faint);font-size:10px} td.bsr .rk{font-weight:700;color:var(--ink)}
+  .totrow td{background:var(--yellow-soft) !important;border-top:2px solid #E9D48A;border-bottom:0;font-weight:700}
+  .totrow td.sku{background:var(--yellow-soft) !important;color:var(--ink)}
+
+  .note{display:flex;gap:10px;align-items:flex-start;background:var(--yellow-soft);border:1px solid #EBD888;border-radius:13px;padding:12px 14px;margin-top:16px;font-size:12.5px;color:#7a611a}
+  .note svg{width:17px;height:17px;flex:none;margin-top:1px;color:#C9A21E} .note b{color:#5f4b12}
+
+  .stub{position:relative;overflow:hidden;text-align:center;padding:78px 24px;border:2px dashed var(--line);border-radius:var(--radius);background:var(--card);margin-top:34px}
+  .stub .doodle{position:absolute;color:var(--cream-2)}
+  .stub .big{font-family:'Poppins',sans-serif;font-weight:600;font-size:22px;position:relative}
+  .stub p{color:var(--ink-soft);font-size:14px;max-width:540px;margin:10px auto 0;line-height:1.6;position:relative}
+  .stub .tag{position:relative;display:inline-block;margin-top:20px;background:var(--yellow);color:#6a5500;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:9px}
+
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px} footer b{color:var(--ink-soft);font-weight:600}
+  /* ---------------- Inventory Overview ---------------- */
+  .inv-wrap{margin-top:16px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media (max-width:960px){.inv-wrap{grid-template-columns:1fr}}
+  .inv-panel{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .inv-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .inv-toolbar label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)}
+  .inv-select{font-family:'Quicksand',sans-serif;font-weight:600;font-size:13px;color:var(--ink);background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+  .inv-select:focus{outline:2px solid var(--teal-light)}
+  .inv-legend{display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;font-size:11px;color:var(--ink-soft)}
+  .inv-legend span{display:inline-flex;align-items:center;gap:5px}
+  .lg-dot{width:11px;height:11px;border-radius:50%}
+  .lg-cov{width:12px;height:12px;border-radius:50%;background:rgba(46,127,119,.18);border:1px solid rgba(46,127,119,.5)}
+  .lg-low{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px rgba(195,35,41,.25)}
+  /* pseudo-3D map stage */
+  .map-stage{position:relative;border-radius:16px;overflow:hidden;background:
+      radial-gradient(120% 90% at 50% 8%, #FFFDF6 0%, var(--cream) 55%, #F0E7D5 100%);
+    border:1px solid var(--line);box-shadow:inset 0 1px 0 #fff, 0 18px 34px -22px rgba(43,38,34,.5)}
+  .map-stage svg{display:block;width:100%;height:auto;filter:drop-shadow(0 14px 18px rgba(43,38,34,.18))}
+  .map-stage svg .state{fill:#FFFFFF;stroke:#E4D8C2;stroke-width:.6;transition:fill .15s}
+  .map-stage svg .state:hover{fill:#FFF7E6}
+  .map-tilt{transform:perspective(1100px) rotateX(15deg);transform-origin:50% 42%}
+  .cov-circle{fill:var(--teal);fill-opacity:.08;stroke:var(--teal);stroke-opacity:.35;stroke-width:1}
+  .cov-circle.pink{fill:var(--pink);stroke:var(--pink)} .cov-circle.red{fill:var(--red);stroke:var(--red)} .cov-circle.gold{fill:#c99700;stroke:#c99700} .cov-circle.tl{fill:var(--teal-light);stroke:var(--teal-light)}
+  .cov-circle.low{fill:var(--red);fill-opacity:.14;stroke:var(--red);stroke-opacity:.9;stroke-width:2;animation:blink 1s ease-in-out infinite}
+  @keyframes blink{0%,100%{stroke-opacity:.9;fill-opacity:.06}50%{stroke-opacity:.15;fill-opacity:.26}}
+  @media (prefers-reduced-motion:reduce){.cov-circle.low{animation:none;stroke-dasharray:4 3}}
+  .city-dot{fill:var(--teal);stroke:#fff;stroke-width:1.5;cursor:pointer}
+  .city-dot.sel{stroke:var(--ink);stroke-width:2}
+  .city-label{font-family:'Poppins',sans-serif;font-size:9px;fill:var(--ink-soft);pointer-events:none;font-weight:600}
+  .map-tip{position:absolute;pointer-events:none;z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;min-width:170px;opacity:0;transform:translateY(4px);transition:opacity .12s}
+  .map-tip.show{opacity:1;transform:none}
+  .map-tip h5{font-family:'Poppins',sans-serif;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .map-tip .trow{display:flex;justify-content:space-between;gap:16px;font-size:11.5px;color:var(--ink-soft);padding:1px 0}
+  .map-tip .trow b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .map-tip .ttot{border-top:1px solid var(--line);margin-top:5px;padding-top:5px;font-weight:700;color:var(--ink)}
+  .map-tip .low-badge{font-size:9px;font-weight:700;color:#fff;background:var(--red);padding:1px 6px;border-radius:6px;text-transform:uppercase}
+  .map-fallback{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:13px}
+  /* SKU detail panel */
+  .inv-detail h4{font-family:'Poppins',sans-serif;font-size:15px;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+  .inv-detail .sub{font-size:11.5px;color:var(--ink-faint);margin-bottom:12px}
+  .detail-line{margin-bottom:12px}
+  .detail-line .lh{display:flex;justify-content:space-between;align-items:center;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;margin-bottom:5px}
+  .detail-line .lh .chip{color:#fff;padding:2px 9px;border-radius:8px;font-size:11px}
+  .detail-line .lh .lt{font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+  .detail-sku{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+  .detail-sku .nm{color:var(--ink-soft);min-width:96px}
+  .detail-sku .bar{flex:1;height:7px;border-radius:4px;background:var(--cream-2);overflow:hidden}
+  .detail-sku .bar i{display:block;height:100%;border-radius:4px}
+  .detail-sku .q{font-variant-numeric:tabular-nums;font-weight:700;min-width:34px;text-align:right}
+  .detail-empty{color:var(--ink-faint);font-size:12px;font-style:italic}
+  /* matrix table */
+  .matrix .cell0{color:var(--ink-faint)}
+  .matrix td.low{background:var(--down-bg);color:var(--down);font-weight:700}
+  .matrix td.sub{background:#FBF6EA;font-weight:700}
+  .matrix .skucell{font-family:'Quicksand',sans-serif;font-weight:600;color:var(--ink-soft)}
+  .matrix .grouprow td{background:#FCF7EC;border-bottom:1px solid var(--line)}
+  .matrix .grouprow .chip{color:#fff;padding:2px 10px;border-radius:8px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600}
+  .matrix .grouprow .thr{margin-left:10px;font-size:10.5px;color:var(--ink-faint);font-weight:600}
+  .matrix .linesub td{background:#F6EFDF;font-weight:700;border-top:1px solid var(--line)}
+  .matrix .linesub td.low{background:var(--down-bg)}
+  .matrix tr.rehead td{background:var(--cream-2);font-family:'Poppins',sans-serif;font-weight:600;font-size:10px;letter-spacing:.02em;color:var(--ink-soft);text-transform:uppercase;text-align:right;border-bottom:1px solid var(--line)}
+  .matrix tr.rehead td.sku{text-align:left;background:var(--cream-2)}
+  .matrix tr.rehead td.sub{background:var(--cream-2)}
+  /* sales coverage map */
+  .cov2{stroke-width:1.5;fill-opacity:.14}
+  .cov2.ok{fill:var(--up);stroke:var(--up)}
+  .cov2.short{fill:var(--red);stroke:var(--red);animation:blink 1.4s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){.cov2.short{animation:none;stroke-dasharray:4 3}}
+  .share-lbl{font-family:'Poppins',sans-serif;font-size:9px;font-weight:700;fill:var(--ink);pointer-events:none}
+  .repl td.ship{font-weight:700;color:var(--teal);background:#EAF5F3}
+  .repl td.cov-bad{color:var(--down);font-weight:700}
+  .repl td.cov-ok{color:var(--up);font-weight:700}
+  .repl .rchip{color:#fff;padding:1px 8px;border-radius:7px;font-size:11px;font-family:'Poppins',sans-serif}
+  .repl tbody tr:hover td{background:#FCFAF4}
+  .repl input.fba-in{font-family:'Quicksand',sans-serif;font-size:11.5px;border:1px solid var(--line);border-radius:7px;padding:4px 8px;width:130px;background:#fff}
+  .repl input.qs-in{font-family:'Quicksand',sans-serif;font-weight:700;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;width:62px;text-align:center;background:#fff;color:var(--teal)}
+  .repl input.fba-in:focus,.repl input.qs-in:focus{outline:2px solid var(--teal-light)}
+  .repl select.rs-in{font-family:'Quicksand',sans-serif;font-size:11px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:#fff;max-width:135px;cursor:pointer}
+  .repl select.rs-in:focus{outline:2px solid var(--teal-light)}
+  .cap-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 14px}
+  @media (max-width:520px){.cap-stats{grid-template-columns:repeat(2,1fr)}}
+  .cap-stats .cs{background:var(--cream);border:1px solid var(--line);border-radius:11px;padding:8px 10px}
+  .cap-stats .cs .k{display:block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:2px}
+  .cap-stats .cs .v{font-family:'Poppins',sans-serif;font-weight:600;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .cap-stats .cs .v i{font-style:normal;font-size:11px;color:var(--ink-faint);font-weight:500}
+  .cap-stats .cs.bad{background:var(--down-bg);border-color:#F3C9C4}
+  .cap-stats .cs.bad .v{color:var(--down)}
+  .cap-stats .cs.ok{background:var(--up-bg);border-color:#BFE3CD}
+  .cap-stats .cs.ok .v{color:var(--up)}
+  .caputil{display:flex;align-items:center;gap:8px;min-width:150px}
+  .caputil .track{flex:1;height:9px;border-radius:5px;background:var(--cream-2);overflow:hidden}
+  .caputil .track i{display:block;height:100%;border-radius:5px}
+  .caputil .pct{font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;min-width:38px;text-align:right}
+  .cap td.more{font-weight:700}
+  .cap td.more.bad{color:var(--down);background:var(--down-bg)}
+  .cap td.more.ok{color:var(--up)}
+  /* reviews & ratings */
+  .rev-alert{display:flex;align-items:center;gap:10px;background:var(--down-bg);border:1px solid #F3C9C4;color:var(--down);border-radius:13px;padding:11px 15px;margin-bottom:14px;font-weight:600;font-size:13px}
+  .rev-alert svg{width:18px;height:18px;flex:none}
+  .rev-ok{display:flex;align-items:center;gap:10px;background:var(--up-bg);border:1px solid #BFE3CD;color:var(--up);border-radius:13px;padding:11px 15px;margin-bottom:14px;font-weight:600;font-size:13px}
+  .rcard .rate{font-family:'Poppins',sans-serif;font-weight:700;font-size:26px;display:flex;align-items:baseline;gap:3px}
+  .rcard .rate .st{font-size:15px;color:var(--yellow)}
+  .rcard.bad .rate{color:var(--down)}
+  .rcard.good .rate{color:var(--up)}
+  .rev-star{color:#E8B10A}
+  .rate-bad{color:var(--down);font-weight:700}
+  .rate-good{color:var(--ink);font-weight:700}
+  .rev-table td .barmini{display:inline-block;vertical-align:middle}
+  .badrev-item{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:10px;background:#fff}
+  .badrev-item .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+  .badrev-item .stars{color:var(--down);font-weight:700;font-size:13px}
+  .badrev-item .dt{font-size:11px;color:var(--ink-faint)}
+  .badrev-item .txt{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .badrev-empty{color:var(--ink-faint);font-style:italic;font-size:12.5px;padding:8px 0}
+  .rev-hint{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
+  #rev-table tbody tr{cursor:pointer}
+  #rev-table tbody tr.sel td{background:#FFF7E6}
+  .delta-mini{font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:5px}
+  .delta-mini.up{color:var(--up)} .delta-mini.down{color:var(--down)}
+  .repl input[type=checkbox]{width:16px;height:16px;accent-color:var(--teal);cursor:pointer}
+  .repl .transitrow td{background:#EAF3FB !important}
+  .repl .transitrow:hover td{background:#E1EDFA !important}
+  .repl .tbadge{font-size:10px;font-weight:700;color:#fff;background:#3B7DD8;padding:2px 8px;border-radius:7px;text-transform:uppercase}
+
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.mtd-head{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.mtd-tag{font-family:Quicksand,sans-serif;font-weight:700;font-size:13px;color:#fff;background:var(--chip,#2E7F77);padding:3px 12px;border-radius:999px;letter-spacing:.02em}
+.mtd-head .rule{flex:1;height:2px;background:linear-gradient(90deg,var(--chip,#2E7F77),transparent);border-radius:2px;opacity:.5}
+.mtd-head .hint{font-size:11px;color:var(--ink-faint)}
+.mtd-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.mtd-card .now-tag{font-size:10px;color:var(--ink-faint);background:rgba(0,0,0,.05);padding:1px 7px;border-radius:999px}
+.wow{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.wow summary{cursor:pointer;list-style:none;padding:12px 16px;font-family:Quicksand,sans-serif;font-weight:600;font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;user-select:none}
+.wow summary::-webkit-details-marker{display:none}
+.wow .wow-sub{font-weight:500;font-size:11px;color:var(--ink-faint)}
+.wow .wow-caret{display:inline-block;transition:transform .18s ease;color:var(--teal)}
+.wow[open] .wow-caret{transform:rotate(90deg)}
+.wow[open] summary{border-bottom:1px solid var(--line)}
+.wow .tbl-wrap{margin:0;border:none;border-radius:0}
+.camp-wrap{max-height:520px;overflow-y:auto}
+.camp-wrap thead th{position:sticky;top:0;z-index:2}
+td.sku.camp .nm{font-size:11px;line-height:1.3;white-space:normal;max-width:340px;font-weight:500}
+
+.mtd-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mom-pill,.wow-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.mom-pill.g{background:rgba(46,127,119,.12);color:var(--up,#2E7F77)}
+.mom-pill.b{background:rgba(195,35,41,.1);color:var(--down,#C32329)}
+.wow-pill{background:rgba(0,0,0,.05);color:var(--ink-soft)}
+.wow-pill.g{color:var(--up,#2E7F77)}
+.wow-pill.b{color:var(--down,#C32329)}
+.wow-cell{font-size:11px;color:var(--ink-soft);white-space:nowrap}
+.wow-cell .ar{margin-left:6px;font-weight:700;display:inline-flex;vertical-align:middle}
+.wow-cell .ar svg{width:10px;height:10px}
+.wow-cell .ar.g{color:var(--up,#2E7F77)}
+.wow-cell .ar.b{color:var(--down,#C32329)}
+.region-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.region-wrap .inv-panel{padding:14px}
+.sub-h{font-family:Quicksand,sans-serif;font-weight:700;font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+.sub-h i{font-weight:500;font-size:11px;color:var(--ink-faint);font-style:normal}
+.ret-bar-track{width:100%;height:8px;border-radius:999px;background:rgba(0,0,0,.06);overflow:hidden}
+.ret-bar{height:100%;border-radius:999px}
+@media (max-width:800px){.region-wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="head-inner">
+    <div class="brand"><img src="data:image/png;base64,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UmVhZHlxyWU8AAADJ2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDEgNzkuYzAyMDRiMmRlZiwgMjAyMy8wMi8wMi0xMjoxNDoyNCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDI0LjMgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjc0OEVFNzdFMzZERTExRjBBODJERjczMEI1NkQ1ODUwIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjc0OEVFNzdGMzZERTExRjBBODJERjczMEI1NkQ1ODUwIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NzQ4RUU3N0MzNkRFMTFGMEE4MkRGNzMwQjU2RDU4NTAiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NzQ4RUU3N0QzNkRFMTFGMEE4MkRGNzMwQjU2RDU4NTAiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz6Q5Ly0AABUrUlEQVR42uzdB5gkRf3G8d/c3h1cAO7IOecsOQmoZEQFFREQAfkrBsSEATCAYo6YUFQQBEEFkZwlSM4555zD5bTzr/eq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" alt="WonderBuddy"><div class="titles"><span class="eyebrow">Daily Business Huddle</span><h1>Performance Overview</h1></div></div>
+    <div class="tabs" role="tablist" aria-label="Business geography">
+      <button class="tab" role="tab" id="tab-india" aria-selected="true" onclick="selectGeo('india')"><span class="flag">🇮🇳</span> India</button>
+      <button class="tab" role="tab" id="tab-usa" aria-selected="false" onclick="selectGeo('usa')"><span class="flag">🇺🇸</span> USA <span class="soon">next</span></button>
+    </div>
+    <div class="meta"><span class="day" id="reportDay">—</span><span class="stamp">vs <b id="prevDay">—</b></span><span class="stamp">Refreshed <b id="stamp">—</b></span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main id="panel-india" role="tabpanel">
+    <div class="subnav" role="tablist" aria-label="Product line">
+      <button class="spill" data-sub="overview" aria-selected="true" onclick="selectIndiaSub('overview')">Overview</button>
+      <button class="spill" data-sub="SD25" aria-selected="false" onclick="selectIndiaSub('SD25')">SD25</button>
+      <button class="spill" data-sub="M20" aria-selected="false" onclick="selectIndiaSub('M20')">M20</button>
+      <button class="spill" data-sub="SuperBuddy" aria-selected="false" onclick="selectIndiaSub('SuperBuddy')">SuperBuddy</button>
+      <button class="spill" data-sub="DM25" aria-selected="false" onclick="selectIndiaSub('DM25')">DM25</button>
+    </div>
+    <div id="india-overview">
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Headline</span><span class="rule"></span><span class="hint">All lines · account Tarbull</span></div>
+    <div class="hero" id="g-hero"></div>
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Total Business</span><span class="rule"></span><span class="hint">Retail + organic</span></div>
+    <div class="grid" id="g-total"></div>
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Advertising</span><span class="rule"></span><span class="hint">Sponsored Ads</span></div>
+    <div class="grid" id="g-ads"></div>
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span><b>Buy Box %, Sessions &amp; Page Views sync one day after the sale</b> (shown “—” for yesterday). <b>FBA Inventory</b> is a live snapshot — no day comparison. <b>BSR</b> is a manual snapshot (not in the feed) — verify &amp; update.</span></div>
+    <div id="lines"></div>
+
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Inventory Overview</span><span class="rule"></span><span class="hint">FBA network · as of 2026-07-27</span></div>
+    <div class="inv-toolbar">
+      <label for="invFilter">View</label>
+      <select id="invFilter" class="inv-select" onchange="renderInventory()"></select>
+      <div class="inv-legend">
+        <span><span class="lg-cov"></span> 200 km coverage</span>
+        <span><span class="lg-low"></span> low stock (blinking)</span>
+        <span><span class="lg-dot" style="background:var(--teal)"></span> stock hub</span>
+      </div>
+    </div>
+    <div class="inv-wrap">
+      <div class="inv-panel">
+        <div class="map-stage" id="mapStage">
+          <div class="map-fallback" id="mapFallback">Loading India map…</div>
+        </div>
+        <div class="map-tip" id="mapTip"></div>
+      </div>
+      <div class="inv-panel inv-detail" id="invDetail"></div>
+    </div>
+    <div class="tbl-wrap matrix" id="invMatrix" style="margin-top:16px"></div>
+
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Sales Coverage &amp; Replenishment</span><span class="rule"></span><span class="hint">ship-to demand · trailing 30 days</span></div>
+    <div class="inv-toolbar">
+      <label for="salesFilter">View</label>
+      <select id="salesFilter" class="inv-select" onchange="renderSales()"></select>
+      <label for="replRegion" style="margin-left:6px">Region</label>
+      <select id="replRegion" class="inv-select" onchange="onReplRegionChange()"></select>
+      <div class="inv-legend">
+        <span><span class="lg-dot" style="background:var(--teal)"></span> sales share</span>
+        <span><span class="lg-dot" style="background:var(--up)"></span> ≥125% covered</span>
+        <span><span class="lg-low"></span> under-covered · restock</span>
+      </div>
+    </div>
+    <div class="inv-wrap">
+      <div class="inv-panel">
+        <div class="map-stage" id="salesMapStage"><div class="map-fallback" id="salesFallback">Loading map…</div></div>
+        <div class="map-tip" id="salesTip"></div>
+      </div>
+      <div class="inv-panel inv-detail" id="salesDetail"></div>
+    </div>
+    <div class="note" style="margin-top:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span>Target = <b>125% of a region's monthly run-rate</b> (national 30-day units × the region's ship-to demand share). Ship qty is rounded up to the <b>master-box</b> (SD25 35 · M20 20 · S12/S11 12 · DM25 36). Regional demand share is applied uniformly per SKU from overall ship-to orders; <b id="unkNote">~15%</b> of orders had no state and are excluded from the split.</span>
+    </div>
+    <div class="tbl-wrap matrix" id="replTable" style="margin-top:16px"></div>
+
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Region-wise Sales &amp; Returns</span><span class="rule"></span><span class="hint">MTD Jul 1–28 · where returns concentrate</span></div>
+    <div class="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span><b>Region Sales is an estimate</b> — Amazon doesn't report retail sales by delivery region, so MTD sales are allocated across regions using the same ship-to demand share used for replenishment above. <b>Region Returns is exact</b> — each return record carries the fulfillment center it shipped from.</span>
+    </div>
+    <div class="inv-wrap region-wrap">
+      <div class="inv-panel">
+        <div class="sub-h">Region Sales <i>(estimate)</i></div>
+        <div class="tbl-wrap matrix" id="regionSalesTable"></div>
+      </div>
+      <div class="inv-panel">
+        <div class="sub-h">Region Returns <i>(exact)</i></div>
+        <div class="tbl-wrap matrix" id="regionReturnsTable"></div>
+      </div>
+    </div>
+
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Storage Capacity vs Recommendation</span><span class="rule"></span><span class="hint">manual limits · units · updates as you ship</span></div>
+    <div class="tbl-wrap matrix cap" id="capTable"></div>
+
+    <div class="section-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Reviews &amp; Ratings</span><span class="rule"></span><span class="hint">alert &lt; 4.1★ · from SellerMate ASIN Tracker</span></div>
+    <div id="rev-alert"></div>
+    <div class="grid" id="rev-rollup"></div>
+    <div class="inv-wrap" style="margin-top:16px">
+      <div class="inv-panel"><div id="rev-table"></div></div>
+      <div class="inv-panel inv-detail" id="rev-badpanel"></div>
+    </div>
+    <div class="section-head" style="margin-top:30px"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Competitor BSR Watch</span><span class="rule"></span><span class="hint">rank tracking · own vs rivals</span></div>
+    <div class="tbl-wrap matrix" id="rev-competitors"></div>
+    </div>
+
+    <div id="india-SD25" class="linepage hidden"></div>
+    <div id="india-M20" class="linepage hidden"></div>
+    <div id="india-SuperBuddy" class="linepage hidden"></div>
+    <div id="india-DM25" class="linepage hidden"></div>
+  </main>
+
+  <main id="panel-usa" role="tabpanel" class="hidden">
+    <div class="stub"><svg class="doodle" style="top:24px;left:40px;width:60px;height:60px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/></svg>
+      <div class="big">USA dashboard — up next</div><p>The USA account (<b>Tarbull SuperBuddy</b>) has live ad data across 130+ campaigns. We're wiring its tab with this same layout.</p><span class="tag">Building next</span></div>
+  </main>
+
+  <footer><span>WonderBuddy · internal daily huddle · not for distribution</span><span>Growth = <b>D-1 vs D-2</b> · IST calendar days</span></footer>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><symbol id="s" viewBox="0 0 24 24"><path d="M12 2.5c.4 0 .76.24.92.6l2.2 5.02 5.46.5c.86.08 1.2 1.16.55 1.73l-4.12 3.6 1.2 5.35c.19.85-.73 1.5-1.47 1.05L12 17.9l-4.74 2.95c-.74.46-1.66-.2-1.47-1.05l1.2-5.35-4.12-3.6c-.65-.57-.31-1.65.55-1.73l5.46-.5 2.2-5.02c.16-.36.52-.6.92-.6Z"/></symbol></svg>
+
+<script>
+/* =====================================================================
+   DASHBOARD_DATA — the ONLY block the 9:30 IST task rewrites.
+   Per SKU: fba = current FBA warehouse balance (snapshot, no day compare);
+   d1/d2 raw via RK([...]) from get_retail_product_performance (Tarbull),
+   with returns from get_fba_customer_returns. Line + grand totals are summed
+   in JS; ratios derived. Lagging fields (buyBox/sessions/pageViews) null=T+1.
+   RK = [totalSales, totalUnits, adSpend, adSales, impressions, clicks, adOrders, buyBox, sessions, pageViews, returns]
+   ===================================================================== */
+const RK=(k)=>({totalSales:k[0],totalUnits:k[1],adSpend:k[2],adSales:k[3],impressions:k[4],clicks:k[5],adOrders:k[6],buyBox:k[7],sessions:k[8],pageViews:k[9],returns:k[10]});
+
+const DASHBOARD_DATA={
+  refreshedAtISO:"2026-07-29T04:00:00Z",
+  india:{currency:"INR", d1Date:"2026-07-28", d2Date:"2026-07-27",
+    lines:[
+      {name:"SD25", chip:"var(--red)", skus:[
+        {sku:"SD25 - Ganesh", asin:"B0FV3MP5FJ", fba:3011, bsr:[["Sound Toys","#2"],["Toys & Games","#56"]],
+          d1:RK([25948,29,4685.97,13532.91,45788,340,16,null,null,null,2]),
+          d2:RK([28942,31,3583.05,9021.39,37832,274,10,99.61,598,871,2])},
+        {sku:"SD25 - Hanuman", asin:"B0FV3K9G8T", fba:1798, bsr:[["Sound Toys","#2"],["Toys & Games","#56"]],
+          d1:RK([17963.82,18,4153.76,8457.52,41042,278,10,null,null,null,5]),
+          d2:RK([20957.79,23,3670.96,12404.34,35794,237,14,99.85,521,695,5])},
+        {sku:"SD25 - Krishna", asin:"B0FV3J2SGV", fba:3080, bsr:[["Sound Toys","#2"],["Toys & Games","#56"]],
+          d1:RK([117762.82,120,14877.57,42287.55,189086,1144,51,null,null,null,13]),
+          d2:RK([110776.89,114,15557.07,51308.89,171140,1091,58,99.85,1595,2434,7])}
+      ]},
+      {name:"M20", chip:"var(--teal)", skus:[
+        {sku:"M20 - Dino", asin:"B0F8QK1JB6", fba:671, bsr:[["Sound Toys","#8"],["Toys & Games","#263"]],
+          d1:RK([15983.92,8,5629.2,10751.63,106229,459,7,null,null,null,2]),
+          d2:RK([27971.86,17,5290.29,24638.05,90511,397,15,99.89,748,1023,3])},
+        {sku:"M20 - Dragon", asin:"B0F8QJSNN2", fba:958, bsr:[["Sound Toys","#8"],["Toys & Games","#263"]],
+          d1:RK([57942,31,4698.36,13545.76,109003,415,8,null,null,null,2]),
+          d2:RK([63936,32,5438.66,31323.67,81376,411,19,99.72,554,830,2])},
+        {sku:"M20 - Giraffe", asin:"B0FXFXDK3G", fba:541, bsr:[["Sound Toys","#8"],["Toys & Games","#263"]],
+          d1:RK([16989.9,10,1816.37,4826.26,25355,214,2,null,null,null,1]),
+          d2:RK([20387.88,13,1945.09,7959.3,28104,236,5,100,511,698,2])},
+        {sku:"M20 - Tiger", asin:"B0FR1V9474", fba:25, bsr:[["Sound Toys","#8"],["Toys & Games","#263"]],
+          d1:RK([1997.99,2,0,0,0,0,0,null,null,null,4]),
+          d2:RK([3995.98,2,0,0,0,0,0,100,66,85,4])},
+        {sku:"M20 - Unicorn", asin:"B0F8QKMHGL", fba:166, bsr:[["Sound Toys","#8"],["Toys & Games","#263"]],
+          d1:RK([33965.83,18,5994.22,11599.11,133746,539,7,null,null,null,3]),
+          d2:RK([33965.83,18,5207.95,11852.47,89158,414,7,99.89,730,1003,2])}
+      ]},
+      {name:"SuperBuddy", chip:"var(--pink)", skus:[
+        {sku:"S12 - Peppa", asin:"B0D6GMVJBL", fba:0, bsr:[["—","—"],["—","—"]],
+          d1:RK([0,0,0,0,0,0,0,null,null,null,0]),
+          d2:RK([0,0,0,0,0,0,0,0,0,0,0])},
+        {sku:"S12 - Unicorn", asin:"B0F3CMM1XZ", fba:111, bsr:[["Storytelling Toys","#1"],["Toys & Games","#1982"]],
+          d1:RK([13993,8,938.68,1694.07,12734,107,1,null,null,null,0]),
+          d2:RK([19990,11,1883.69,5082.21,11922,159,3,99.69,259,377,1])},
+        {sku:"S12 - Space", asin:"B0F3CHXVSS", fba:163, bsr:[["Storytelling Toys","#4"],["Toys & Games","#1982"]],
+          d1:RK([11993.94,6,1378.7,6776.23,5484,102,4,null,null,null,0]),
+          d2:RK([15991.92,8,1350.43,8470.28,5438,84,5,99.55,151,253,0])},
+        {sku:"S11 - Unicorn", asin:"B0F2419LKN", fba:1, bsr:[["Storytelling Toys","#4"],["Toys & Games","#10704"]],
+          d1:RK([0,0,17.85,0,195,1,0,null,null,null,0]),
+          d2:RK([0,0,5.4,0,170,0,0,0,0,0,0])},
+        {sku:"S11 - Dino", asin:"B0F37SV15X", fba:3, bsr:[["Storytelling Toys","#4"],["Toys & Games","#10704"]],
+          d1:RK([0,0,17.85,0,213,1,0,null,null,null,0]),
+          d2:RK([0,0,5.4,0,189,0,0,0,0,0,0])},
+        {sku:"S1 - Rabbito Red", asin:"B0BW46QP8V", fba:4, bsr:[["Storytelling Toys","#3"],["Toys & Games","#10099"]],
+          d1:RK([0,0,169.6,0,3371,17,0,null,null,null,0]),
+          d2:RK([3999,1,309.29,1694.06,3224,25,1,100,34,55,1])},
+        {sku:"S1 - Rabbito Blue", asin:"B0BW44XN2L", fba:0, bsr:[["Storytelling Toys","#3"],["Toys & Games","#10099"]],
+          d1:RK([0,0,0,0,8,0,0,null,null,null,0]),
+          d2:RK([0,0,0,0,3,0,0,0,0,0,0])}
+      ]},
+      {name:"DM25", chip:"var(--teal-light)", skus:[
+        {sku:"DM25 - Ganpati", asin:"B0GW8LCV7B", fba:382, bsr:[["Sound Toys","#32"],["Toys & Games","#1160"]],
+          d1:RK([7991.92,9,1555.78,5077.08,19242,102,6,null,null,null,1]),
+          d2:RK([4994.95,6,1172.56,3384.7,17705,78,5,100,132,190,3])},
+        {sku:"DM25 - Hanuman", asin:"B0GW8MCFJ8", fba:305, bsr:[["Sound Toys","#32"],["Toys & Games","#1160"]],
+          d1:RK([14984.85,16,1945.52,8465.17,28477,132,10,null,null,null,2]),
+          d2:RK([7991.92,10,2029.9,10157.53,29008,143,13,100,179,250,0])}
+      ]}
+    ]},
+  usa:{currency:"USD"}
+};
+
+/* account-level placement (Top of Search) — not derivable from per-SKU data.
+   tos% = Top-of-Search ad sales / total placement ad sales. Source: get_placement_performance. */
+DASHBOARD_DATA.india.placement={
+  d1:{tosSales:46286.83, totalSales:118548.91},
+  d2:{tosSales:84961.11, totalSales:172217.27}
+};
+
+const CUR={INR:{sym:"₹",loc:"en-IN"},USD:{sym:"$",loc:"en-US"}};
+function fmt(v,kind,cur){const c=CUR[cur]||CUR.INR;
+  if(v===null||v===undefined||isNaN(v)) return "—";
+  switch(kind){case "money":return c.sym+Math.round(v).toLocaleString(c.loc);
+    case "money2":return c.sym+v.toLocaleString(c.loc,{minimumFractionDigits:2,maximumFractionDigits:2});
+    case "int":return Math.round(v).toLocaleString(c.loc);
+    case "pct":return v.toFixed(2)+"%"; case "x":return v.toFixed(2)+"×"; default:return String(v);}}
+const AU=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M17 7H9M17 7v8"/></svg>`;
+const AD=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 17H9M17 17V9"/></svg>`;
+function pctChange(a,b){if(a==null||b==null||b===0)return null;return (a-b)/Math.abs(b)*100;}
+function deltaPill(a,b,good){const p=pctChange(a,b);
+  if(a==null||b==null)return ""; if(b===0)return `<span class="delta flat">new</span>`;
+  if(Math.abs(p)<0.05)return `<span class="delta flat">0.00%</span>`;
+  const up=p>0,g=(good==='up'&&up)||(good==='down'&&!up);
+  return `<span class="delta ${g?'up':'down'}">${up?AU:AD}${Math.abs(p).toFixed(2)}%</span>`;}
+
+function agg(skus,day){
+  const o={totalSales:0,totalUnits:0,adSpend:0,adSales:0,impressions:0,clicks:0,adOrders:0,returns:0,fba:0};
+  let bbN=0,bbD=0,bbHas=false,se=0,seHas=false,pv=0,pvHas=false;
+  skus.forEach(s=>{const d=s[day];
+    o.totalSales+=d.totalSales;o.totalUnits+=d.totalUnits;o.adSpend+=d.adSpend;o.adSales+=d.adSales;
+    o.impressions+=d.impressions;o.clicks+=d.clicks;o.adOrders+=d.adOrders;o.returns+=(d.returns||0);o.fba+=(s.fba||0);
+    if(d.buyBox!=null){bbHas=true;bbN+=d.buyBox*d.totalSales;bbD+=d.totalSales;}
+    if(d.sessions!=null){seHas=true;se+=d.sessions;}
+    if(d.pageViews!=null){pvHas=true;pv+=d.pageViews;}});
+  o.buyBox=bbHas?(bbD?bbN/bbD:0):null; o.sessions=seHas?se:null; o.pageViews=pvHas?pv:null;
+  return withRatios(o);}
+function withRatios(o){
+  o.acos=o.adSales?o.adSpend/o.adSales*100:null; o.roas=o.adSpend?o.adSales/o.adSpend:null;
+  o.tacos=o.totalSales?o.adSpend/o.totalSales*100:null; o.adSalesPct=o.totalSales?o.adSales/o.totalSales*100:null;
+  o.ctr=o.impressions?o.clicks/o.impressions*100:null; o.cvr=o.clicks?o.adOrders/o.clicks*100:null;
+  o.cpc=o.clicks?o.adSpend/o.clicks:null;
+  o.totalAov=o.totalUnits?o.totalSales/o.totalUnits:null; o.adAov=o.adOrders?o.adSales/o.adOrders:null;
+  o.totalCvr=(o.sessions!=null)?(o.sessions?o.totalUnits/o.sessions*100:0):null;
+  o.returnPct=o.totalUnits?(o.returns||0)/o.totalUnits*100:null;
+  return o;}
+
+const HERO=[{key:"totalSales",lbl:"Total Sales",kind:"money",good:"up",cls:"red"},{key:"adSales",lbl:"Ad Sales",kind:"money",good:"up",cls:"teal"},{key:"roas",lbl:"RoAS",kind:"x",good:"up",cls:"pink"}];
+const TOTAL=[
+  {key:"totalUnits",lbl:"Total Units",kind:"int",good:"up",acc:"var(--red)"},
+  {key:"totalAov",lbl:"Total AOV",kind:"money",good:"up",acc:"var(--yellow)"},
+  {key:"tacos",lbl:"TACoS",kind:"pct",good:"down",acc:"var(--teal)"},
+  {key:"adSalesPct",lbl:"% Ad Sales",kind:"pct",good:"down",acc:"var(--teal-light)"},
+  {key:"returns",lbl:"Returns",kind:"int",good:"down",acc:"var(--red)"},
+  {key:"fba",lbl:"FBA Inventory",kind:"int",acc:"var(--teal)",current:true},
+  {key:"buyBox",lbl:"Buy Box %",kind:"pct",good:"up",acc:"var(--pink)",lag:true},
+  {key:"sessions",lbl:"Sessions",kind:"int",good:"up",acc:"var(--red)",lag:true},
+  {key:"pageViews",lbl:"Page Views",kind:"int",good:"up",acc:"var(--yellow)",lag:true}
+];
+const ADS=[
+  {key:"adSpend",lbl:"Ad Spend",kind:"money",good:"up",acc:"var(--yellow)"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up",acc:"var(--teal)"},
+  {key:"adOrders",lbl:"Ad Units",kind:"int",good:"up",acc:"var(--red)"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down",acc:"var(--red)"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up",acc:"var(--teal)"},
+  {key:"impressions",lbl:"Impressions",kind:"int",good:"up",acc:"var(--teal-light)"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down",acc:"var(--teal-light)"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up",acc:"var(--pink)"},
+  {key:"cvr",lbl:"CVR",kind:"pct",good:"up",acc:"var(--yellow)"},
+  {key:"roas",lbl:"RoAS",kind:"x",good:"up",acc:"var(--pink)"},
+  {key:"tos",lbl:"Top of Search %",kind:"pct",good:"up",acc:"var(--red)"}
+];
+/* line cards (requested order): Spend, AdSales, TotalSales, Units, ACoS, TACoS, Clicks, Imp, CTR, CVR, Sessions, PageViews, RoAS, Returns, FBA */
+const LINE_CARDS=[
+  {key:"adSpend",lbl:"Ad Spend",kind:"money",good:"up",acc:"var(--yellow)"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up",acc:"var(--teal)"},
+  {key:"totalSales",lbl:"Total Sales",kind:"money",good:"up",acc:"var(--red)"},
+  {key:"totalUnits",lbl:"Total Units",kind:"int",good:"up",acc:"var(--red)"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down",acc:"var(--red)"},
+  {key:"tacos",lbl:"TACoS",kind:"pct",good:"down",acc:"var(--teal)"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up",acc:"var(--teal)"},
+  {key:"impressions",lbl:"Impressions",kind:"int",good:"up",acc:"var(--teal-light)"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down",acc:"var(--teal-light)"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up",acc:"var(--pink)"},
+  {key:"cvr",lbl:"CVR",kind:"pct",good:"up",acc:"var(--yellow)"},
+  {key:"sessions",lbl:"Sessions",kind:"int",good:"up",acc:"var(--red)",lag:true},
+  {key:"pageViews",lbl:"Page Views",kind:"int",good:"up",acc:"var(--yellow)",lag:true},
+  {key:"roas",lbl:"RoAS",kind:"x",good:"up",acc:"var(--pink)"},
+  {key:"returns",lbl:"Returns",kind:"int",good:"down",acc:"var(--red)"},
+  {key:"totalCvr",lbl:"Total CVR",kind:"pct",good:"up",acc:"var(--yellow)",lag:true},
+  {key:"returnPct",lbl:"Return %",kind:"pct",good:"down",acc:"var(--red)"},
+  {key:"fba",lbl:"FBA Inventory",kind:"int",acc:"var(--teal)",current:true}
+];
+/* table columns — requested order + Returns appended */
+const COLS=[
+  {key:"fba",lbl:"FBA Inv (now)",kind:"int",current:true},
+  {key:"totalSales",lbl:"Total Sales",kind:"money",good:"up"},
+  {key:"totalUnits",lbl:"Total Units",kind:"int",good:"up"},
+  {key:"returns",lbl:"Returns",kind:"int",good:"down"},
+  {key:"tacos",lbl:"TACoS",kind:"pct",good:"down"},
+  {key:"adSpend",lbl:"Ad Spend",kind:"money",good:"up"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up"},
+  {key:"adOrders",lbl:"Ad Units",kind:"int",good:"up"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up"},
+  {key:"impressions",lbl:"Impressions",kind:"int",good:"up"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up"},
+  {key:"cvr",lbl:"CVR",kind:"pct",good:"up"},
+  {key:"roas",lbl:"RoAS",kind:"x",good:"up"},
+  {key:"adSalesPct",lbl:"% Ad Sales",kind:"pct",good:"down"},
+  {key:"buyBox",lbl:"Buy Box %",kind:"pct",good:"up",lag:true},
+  {key:"pageViews",lbl:"Page Views",kind:"int",good:"up",lag:true},
+  {key:"sessions",lbl:"Sessions",kind:"int",good:"up",lag:true}
+];
+
+function heroCard(m,a,b,cur){return `<div class="htile ${m.cls}"><div class="lbl"><span class="dot"></span>${m.lbl}</div><div class="val">${fmt(a[m.key],m.kind,cur)}</div><div class="foot">${deltaPill(a[m.key],b[m.key],m.good)}<span class="prev">prev <b>${fmt(b[m.key],m.kind,cur)}</b></span></div></div>`;}
+function miniCard(m,a,b,cur){
+  if(m.current) return `<div class="card" style="--acc:${m.acc}"><div class="lbl">${m.lbl}</div><div class="val" style="color:var(--teal)">${fmt(a[m.key],m.kind,cur)}</div><div class="row"><span class="now-tag">live snapshot</span></div></div>`;
+  const v=a[m.key], lag=m.lag&&(v==null);
+  if(lag) return `<div class="card lagging" style="--acc:${m.acc}"><div class="lbl">${m.lbl}</div><div class="val">—</div><div class="row"><span class="lag-tag">T+1</span><span class="prev">was ${fmt(b[m.key],m.kind,cur)}</span></div></div>`;
+  return `<div class="card" style="--acc:${m.acc}"><div class="lbl">${m.lbl}</div><div class="val">${fmt(v,m.kind,cur)}</div><div class="row">${deltaPill(v,b[m.key],m.good)}<span class="prev">vs ${fmt(b[m.key],m.kind,cur)}</span></div></div>`;}
+function tCell(a,b,c,cur){
+  if(c.current) return `<td class="inv"><div class="cell1">${fmt(a[c.key],c.kind,cur)}</div><div class="cell2">now</div></td>`;
+  const v1=a[c.key], v2=b[c.key], lag=c.lag&&(v1==null);
+  if(lag) return `<td class="lag"><div class="cell1">—</div><div class="cell2">was ${fmt(v2,c.kind,cur)}</div></td>`;
+  let d2=""; const p=pctChange(v1,v2);
+  if(v2!=null){ if(p==null||Math.abs(p)<0.05){d2=`<div class="cell2">${fmt(v2,c.kind,cur)}</div>`;}
+    else{const up=p>0,g=(c.good==='up'&&up)||(c.good==='down'&&!up); d2=`<div class="cell2"><span class="ar ${g?'g':'b'}">${up?AU:AD}</span>${fmt(v2,c.kind,cur)}</div>`;}}
+  return `<td><div class="cell1">${fmt(v1,c.kind,cur)}</div>${d2}</td>`;}
+
+const ST_INTENT={"SD25":{"Branded":{"d1":[3279,10153,12,26240,185],"d2":[3256,13534,17,23890,182]},"Panda Box":{"d1":[518,0,0,2538,20],"d2":[593,846,1,3000,24]},"Carvaan":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Divine":{"d1":[1874,7612,10,7200,119],"d2":[1993,16069,17,6979,98]},"Gifting":{"d1":[625,846,1,19065,59],"d2":[419,0,0,11749,37]},"Generic":{"d1":[17421,45667,54,220873,1379],"d2":[16550,42286,47,199148,1261]}},"M20":{"Branded":{"d1":[1153,6519,4,9746,86],"d2":[701,3386,2,7924,44]},"Panda Box":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Carvaan":{"d1":[1396,3979,3,3682,60],"d2":[2034,11599,7,4388,74]},"Divine":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Gifting":{"d1":[1772,1693,1,48956,172],"d2":[1553,1693,1,35712,150]},"Generic":{"d1":[13817,28531,16,311949,1309],"d2":[13593,59095,36,241125,1190]}},"SuperBuddy":{"Branded":{"d1":[266,3388,2,1454,22],"d2":[355,3388,2,1923,27]},"Panda Box":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Carvaan":{"d1":[934,3388,2,1834,45],"d2":[1407,6776,4,1933,56]},"Divine":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Gifting":{"d1":[643,1694,1,9098,83],"d2":[989,3388,2,10995,109]},"Generic":{"d1":[679,0,0,9619,78],"d2":[803,1694,1,6092,76]}},"DM25":{"Branded":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Panda Box":{"d1":[429,0,0,2272,21],"d2":[319,847,1,2777,14]},"Carvaan":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Divine":{"d1":[820,4231,5,13366,64],"d2":[745,8463,10,12811,72]},"Gifting":{"d1":[0,0,0,0,0],"d2":[0,0,0,0,0]},"Generic":{"d1":[2252,9311,11,32081,149],"d2":[2138,4232,7,31125,135]}}};
+const BREAKDOWN={"SD25":{"type":{"Sponsored Brands":{"d1":[3030.42,12686.3,15,20629,229],"d2":[2751.09,14377.78,17,20783,210]},"Sponsored Products":{"d1":[21492.74,56669.6,68,257058,1574],"d2":[20873.62,60895.82,72,227219,1432]},"Sponsored Display":{"d1":[142.76,0.0,0,5798,19],"d2":[84.55,0.0,0,4953,15]}},"match":{"Product Exact":{"d1":[9785.92,37217.36,44,63438,618],"d2":[9765.94,38906.3,49,58044,589]},"Broad":{"d1":[2264.86,8457.53,11,19869,167],"d2":[2132.87,13532.01,14,20375,136]},"Category":{"d1":[3779.75,9303.25,11,53488,323],"d2":[2650.84,6766.01,8,41176,225]},"Product Expanded":{"d1":[5540.85,10149.01,12,76919,433],"d2":[5859.61,3383.0,4,77208,440]},"Phrase":{"d1":[1888.6,3383.0,4,42003,153],"d2":[1788.95,9303.27,10,31592,143]},"Exact":{"d1":[862.82,0.0,0,6672,39],"d2":[1021.92,1691.5,2,6086,47]},"Auto":{"d1":[400.36,845.75,1,15298,70],"d2":[404.58,1691.51,2,13521,62]},"Audience/Views":{"d1":[142.76,0.0,0,5798,19],"d2":[84.55,0.0,0,4953,15]}}},"M20":{"type":{"Sponsored Products":{"d1":[16534.09,35643.12,21,289291,1379],"d2":[16194.09,70693.86,43,209510,1220]},"Sponsored Brands":{"d1":[496.1,0.0,0,24525,73],"d2":[451.79,0.0,0,18046,67]},"Sponsored Display":{"d1":[1066.9,5079.64,3,59478,174],"d2":[1236.11,5079.63,3,61260,171]}},"match":{"Broad":{"d1":[8361.54,13545.73,8,181080,643],"d2":[8601.23,36149.89,22,124912,584]},"Product Exact":{"d1":[2292.67,3978.79,3,18329,169],"d2":[3091.88,11599.12,7,22395,195]},"Phrase":{"d1":[3538.4,11345.73,7,70475,304],"d2":[2685.86,14985.55,9,48814,230]},"Category":{"d1":[968.63,0.0,0,13161,110],"d2":[875.74,0.0,0,12860,98]},"Product Expanded":{"d1":[1096.78,5079.66,2,16247,126],"d2":[849.8,4826.26,3,12700,107]},"Audience/Views":{"d1":[1007.34,5079.64,3,52651,166],"d2":[1059.37,5079.63,3,49489,147]},"Exact":{"d1":[645.4,0.0,0,11422,53],"d2":[542.73,1693.21,1,9055,44]},"Auto":{"d1":[186.33,1693.21,1,9929,55],"d2":[175.38,1439.83,1,8591,53]}}},"SuperBuddy":{"type":{"Sponsored Products":{"d1":[2469.13,8470.3,5,20403,225],"d2":[3486.91,15246.55,9,19625,265]},"Sponsored Brands":{"d1":[53.56,0.0,0,443,5],"d2":[16.19,0.0,0,418,2]},"Sponsored Display":{"d1":[0,0,0,0,0],"d2":[51.1,0.0,0,858,3]}},"match":{"Product Exact":{"d1":[1135.19,3388.11,2,3088,60],"d2":[1613.6,6776.25,4,3529,70]},"Broad":{"d1":[1005.39,1694.06,1,11930,115],"d2":[1292.23,5082.19,3,11372,119]},"Exact":{"d1":[191.67,3388.13,2,1877,20],"d2":[341.85,1694.05,1,2172,29]},"Auto":{"d1":[80.7,0.0,0,2451,21],"d2":[97.63,0.0,0,2236,25]},"Phrase":{"d1":[79.58,0.0,0,896,7],"d2":[163.18,1694.06,1,743,17]},"Category":{"d1":[30.16,0.0,0,604,7],"d2":[45.71,0.0,0,849,10]}}},"DM25":{"type":{"Sponsored Products":{"d1":[2479.94,8464.32,10,37494,168],"d2":[2304.28,11003.26,13,37707,166]}},"match":{"Product Expanded":{"d1":[1076.61,4233.0,5,18965,72],"d2":[1058.79,1693.2,2,19466,68]},"Phrase":{"d1":[868.81,4231.32,5,5891,51],"d2":[554.13,7616.86,9,5325,39]},"Product Exact":{"d1":[208.3,0.0,0,2126,13],"d2":[194.28,846.6,1,2614,11]},"Category":{"d1":[149.03,0.0,0,2586,10],"d2":[149.41,0.0,0,2324,10]},"Auto":{"d1":[122.27,0.0,0,7715,19],"d2":[217.55,846.6,1,7701,34]},"Exact":{"d1":[54.92,0.0,0,211,3],"d2":[130.12,0.0,0,277,4]}}}};
+const MTD_DATA={"SD25":{"units":4777,"sales":4608071.76,"spend":681823.62,"adSales":2599654.76,"returns":341,"returnPct":7.14,"cvr":3.66,"momUnitsPct":-2.5,"momSalesPct":-3.3,"acos":26.23,"momSpendPct":17.7,"momAcosPts":5.7,"momCvrPts":-0.3},"M20":{"units":2193,"sales":3984044.63,"spend":618783.92,"adSales":2449054.99,"returns":240,"returnPct":10.94,"cvr":1.64,"momUnitsPct":14.3,"momSalesPct":15.7,"acos":25.27,"momSpendPct":11.0,"momAcosPts":0.2,"momCvrPts":-0.1},"SuperBuddy":{"units":613,"sales":1365213.05,"spend":136047.9,"adSales":706705.94,"returns":76,"returnPct":12.4,"cvr":1.75,"momUnitsPct":-19.3,"momSalesPct":-20.7,"acos":19.25,"momSpendPct":-47.3,"momAcosPts":-3.5,"momCvrPts":-0.1},"DM25":{"units":421,"sales":395151.84,"spend":68787.06,"adSales":307393.25,"returns":40,"returnPct":9.5,"cvr":5.02,"momUnitsPct":419.8,"momSalesPct":394.5,"acos":22.38,"momSpendPct":404.5,"momAcosPts":3.6,"momCvrPts":0.6}};
+const WEEKLY_DATA={"SD25":[{"wk":"W1","label":"Jul 1–7","units":1288,"sales":1252592.01,"spend":202101.85,"adSales":740230.91,"sessions":23722,"pageViews":35767,"impressions":2118238,"clicks":13562,"totalCvr":5.43,"adsCvr":6.54,"ctr":0.64,"cpc":14.9,"cac":156.91,"returns":90,"acos":27.3,"roas":3.66},{"wk":"W2","label":"Jul 8–14","units":1218,"sales":1186840.8,"spend":172441.31,"adSales":687450.46,"sessions":21482,"pageViews":32157,"impressions":1969788,"clicks":12133,"totalCvr":5.67,"adsCvr":6.85,"ctr":0.62,"cpc":14.21,"cac":141.58,"returns":62,"acos":25.08,"roas":3.99},{"wk":"W3","label":"Jul 15–21","units":1162,"sales":1112763.33,"spend":148323.87,"adSales":634070.02,"sessions":20089,"pageViews":30386,"impressions":1607498,"clicks":11178,"totalCvr":5.78,"adsCvr":6.81,"ctr":0.7,"cpc":13.27,"cac":127.65,"returns":76,"acos":23.39,"roas":4.27},{"wk":"W4","label":"Jul 22–28","units":1109,"sales":1055875.62,"spend":158956.59,"adSales":537903.37,"sessions":20130,"pageViews":29598,"impressions":1860581,"clicks":11780,"totalCvr":5.51,"adsCvr":5.48,"ctr":0.63,"cpc":13.49,"cac":143.33,"returns":113,"acos":29.55,"roas":3.38}],"M20":[{"wk":"W1","label":"Jul 1–7","units":693,"sales":1252456,"spend":192595.92,"adSales":787325.99,"sessions":28374,"pageViews":38525,"impressions":2760912,"clicks":14184,"totalCvr":2.44,"adsCvr":3.52,"ctr":0.51,"cpc":13.58,"cac":277.92,"returns":54,"acos":24.46,"roas":4.09},{"wk":"W2","label":"Jul 8–14","units":488,"sales":910728.11,"spend":154116.78,"adSales":577253.78,"sessions":22793,"pageViews":30959,"impressions":2930374,"clicks":13023,"totalCvr":2.14,"adsCvr":2.93,"ctr":0.44,"cpc":11.83,"cac":315.81,"returns":62,"acos":26.7,"roas":3.75},{"wk":"W3","label":"Jul 15–21","units":524,"sales":946639.57,"spend":138282.0,"adSales":598398.29,"sessions":22201,"pageViews":30584,"impressions":2814225,"clicks":12025,"totalCvr":2.36,"adsCvr":3.18,"ctr":0.43,"cpc":11.5,"cac":263.9,"returns":55,"acos":23.11,"roas":4.33},{"wk":"W4","label":"Jul 22–28","units":488,"sales":874220.95,"spend":133789.22,"adSales":486076.93,"sessions":22068,"pageViews":30209,"impressions":2423410,"clicks":11532,"totalCvr":2.21,"adsCvr":2.64,"ctr":0.48,"cpc":11.6,"cac":274.16,"returns":69,"acos":27.52,"roas":3.63}],"SuperBuddy":[{"wk":"W1","label":"Jul 1–7","units":244,"sales":553571,"spend":69397.68,"adSales":372958.42,"sessions":8987,"pageViews":12626,"impressions":621696,"clicks":5156,"totalCvr":2.72,"adsCvr":3.61,"ctr":0.83,"cpc":13.46,"cac":284.42,"returns":21,"acos":18.61,"roas":5.37},{"wk":"W2","label":"Jul 8–14","units":135,"sales":308868.19,"spend":21378.45,"adSales":99956.56,"sessions":4236,"pageViews":6052,"impressions":180353,"clicks":1656,"totalCvr":3.19,"adsCvr":3.08,"ctr":0.92,"cpc":12.91,"cac":158.36,"returns":22,"acos":21.39,"roas":4.68},{"wk":"W3","label":"Jul 15–21","units":131,"sales":290874.27,"spend":21689.14,"adSales":127061.55,"sessions":4151,"pageViews":5965,"impressions":183220,"clicks":1745,"totalCvr":3.16,"adsCvr":4.01,"ctr":0.95,"cpc":12.43,"cac":165.57,"returns":19,"acos":17.07,"roas":5.86},{"wk":"W4","label":"Jul 22–28","units":103,"sales":211899.59,"spend":23582.63,"adSales":106729.41,"sessions":3377,"pageViews":4737,"impressions":184646,"clicks":2023,"totalCvr":3.05,"adsCvr":2.77,"ctr":1.1,"cpc":11.66,"cac":228.96,"returns":14,"acos":22.1,"roas":4.53}],"DM25":[{"wk":"W1","label":"Jul 1–7","units":72,"sales":70080.02,"spend":14662.55,"adSales":62455.88,"sessions":1450,"pageViews":2270,"impressions":134975,"clicks":920,"totalCvr":4.97,"adsCvr":8.37,"ctr":0.68,"cpc":15.94,"cac":203.65,"returns":3,"acos":23.48,"roas":4.26},{"wk":"W2","label":"Jul 8–14","units":94,"sales":86912.18,"spend":15881.56,"adSales":70245.05,"sessions":1882,"pageViews":2899,"impressions":205986,"clicks":1201,"totalCvr":4.99,"adsCvr":6.83,"ctr":0.58,"cpc":13.22,"cac":168.95,"returns":10,"acos":22.61,"roas":4.42},{"wk":"W3","label":"Jul 15–21","units":115,"sales":110288.92,"spend":12936.41,"adSales":77361.1,"sessions":1673,"pageViews":2569,"impressions":161432,"clicks":1006,"totalCvr":6.87,"adsCvr":9.54,"ctr":0.62,"cpc":12.86,"cac":112.49,"returns":9,"acos":16.72,"roas":5.98},{"wk":"W4","label":"Jul 22–28","units":140,"sales":127870.72,"spend":25306.54,"adSales":97331.22,"sessions":2431,"pageViews":3557,"impressions":333315,"clicks":1731,"totalCvr":5.76,"adsCvr":6.82,"ctr":0.52,"cpc":14.62,"cac":180.76,"returns":18,"acos":26.0,"roas":3.85}]};
+const SKU_MTD_DATA={"B0FV3MP5FJ":{"sku":"SD25 - Ganesh","line":"SD25","units":1054,"sales":1013022.57,"spend":145595.84,"adSales":565839.86,"returns":71,"returnPct":6.74,"cvr":3.24,"momUnitsPct":-2.7,"momSalesPct":-5.0,"wowUnits":[301,269,247,237],"impressions":1735662,"clicks":10439,"ctr":0.6,"cpc":13.95,"acos":25.73,"tacos":14.37,"cac":138.14},"B0FV3K9G8T":{"sku":"SD25 - Hanuman","line":"SD25","units":829,"sales":792463.58,"spend":122701.77,"adSales":474762.68,"returns":73,"returnPct":8.81,"cvr":3.29,"momUnitsPct":-17.8,"momSalesPct":-18.9,"wowUnits":[249,219,199,162],"impressions":1332068,"clicks":8600,"ctr":0.65,"cpc":14.27,"acos":25.84,"tacos":15.48,"cac":148.01},"B0FV3J2SGV":{"sku":"SD25 - Krishna","line":"SD25","units":2894,"sales":2802585.61,"spend":413526.01,"adSales":1559052.22,"returns":197,"returnPct":6.81,"cvr":3.99,"momUnitsPct":3.1,"momSalesPct":3.0,"wowUnits":[738,730,716,710],"impressions":4488381,"clicks":29617,"ctr":0.66,"cpc":13.96,"acos":26.52,"tacos":14.76,"cac":142.89},"B0F8QK1JB6":{"sku":"M20 - Dino","line":"M20","units":358,"sales":665017.56,"spend":178971.47,"adSales":706142.37,"returns":39,"returnPct":10.89,"cvr":1.78,"momUnitsPct":52.3,"momSalesPct":52.7,"wowUnits":[90,86,98,84],"impressions":3433844,"clicks":14121,"ctr":0.41,"cpc":12.67,"acos":25.34,"tacos":26.91,"cac":499.92},"B0F8QJSNN2":{"sku":"M20 - Dragon","line":"M20","units":606,"sales":1142852,"spend":154843.8,"adSales":630484.65,"returns":44,"returnPct":7.26,"cvr":2.35,"momUnitsPct":123.6,"momSalesPct":123.4,"wowUnits":[146,163,148,149],"impressions":2670433,"clicks":11873,"ctr":0.44,"cpc":13.04,"acos":24.56,"tacos":13.55,"cac":255.52},"B0FXFXDK3G":{"sku":"M20 - Giraffe","line":"M20","units":334,"sales":536203.85,"spend":60555.31,"adSales":279634.71,"returns":38,"returnPct":11.38,"cvr":1.38,"momUnitsPct":11.3,"momSalesPct":12.0,"wowUnits":[99,86,75,74],"impressions":700558,"clicks":6217,"ctr":0.89,"cpc":9.74,"acos":21.66,"tacos":11.29,"cac":181.3},"B0FR1V9474":{"sku":"M20 - Tiger","line":"M20","units":377,"sales":675240.61,"spend":72453.79,"adSales":273026.03,"returns":68,"returnPct":18.04,"cvr":1.56,"momUnitsPct":-46.1,"momSalesPct":-46.4,"wowUnits":[214,25,70,68],"impressions":966666,"clicks":5179,"ctr":0.54,"cpc":13.99,"acos":26.54,"tacos":10.73,"cac":192.19},"B0F8QKMHGL":{"sku":"M20 - Unicorn","line":"M20","units":518,"sales":964730.61,"spend":151959.55,"adSales":559767.23,"returns":51,"returnPct":9.85,"cvr":1.27,"momUnitsPct":25.4,"momSalesPct":27.4,"wowUnits":[144,128,133,113],"impressions":3157423,"clicks":13377,"ctr":0.42,"cpc":11.36,"acos":27.15,"tacos":15.75,"cac":293.36},"B0D6GMVJBL":{"sku":"S12 - Peppa","line":"SuperBuddy","units":0,"sales":0,"spend":0,"adSales":0,"returns":0,"returnPct":null,"cvr":null,"momUnitsPct":null,"momSalesPct":null,"wowUnits":[0,0,0,0],"impressions":0,"clicks":0,"ctr":null,"cpc":null,"acos":null,"tacos":null,"cac":null},"B0F3CMM1XZ":{"sku":"S12 - Unicorn","line":"SuperBuddy","units":213,"sales":398199,"spend":42162.9,"adSales":169082.94,"returns":29,"returnPct":13.62,"cvr":1.43,"momUnitsPct":-22.3,"momSalesPct":-22.5,"wowUnits":[65,39,52,57],"impressions":355100,"clicks":3741,"ctr":1.05,"cpc":11.27,"acos":24.94,"tacos":10.59,"cac":197.95},"B0F3CHXVSS":{"sku":"S12 - Space","line":"SuperBuddy","units":203,"sales":389334.82,"spend":41834.34,"adSales":191202.95,"returns":19,"returnPct":9.36,"cvr":1.87,"momUnitsPct":-14.0,"momSalesPct":-15.3,"wowUnits":[79,48,37,39],"impressions":269441,"clicks":3095,"ctr":1.15,"cpc":13.52,"acos":21.88,"tacos":10.75,"cac":206.08},"B0F2419LKN":{"sku":"S11 - Unicorn","line":"SuperBuddy","units":31,"sales":84258.97,"spend":9898.79,"adSales":52487.27,"returns":8,"returnPct":25.81,"cvr":1.62,"momUnitsPct":-74.6,"momSalesPct":-76.6,"wowUnits":[28,2,1,0],"impressions":130928,"clicks":852,"ctr":0.65,"cpc":11.61,"acos":18.86,"tacos":11.75,"cac":319.32},"B0F37SV15X":{"sku":"S11 - Dino","line":"SuperBuddy","units":141,"sales":394845.26,"spend":30429.71,"adSales":230086.22,"returns":17,"returnPct":12.06,"cvr":1.93,"momUnitsPct":39.6,"momSalesPct":35.8,"wowUnits":[61,40,38,2],"impressions":276051,"clicks":2130,"ctr":0.77,"cpc":14.28,"acos":13.23,"tacos":7.71,"cac":215.81},"B0BW46QP8V":{"sku":"S1 - Rabbito Red","line":"SuperBuddy","units":25,"sales":98575,"spend":10894.7,"adSales":54246.85,"returns":3,"returnPct":12.0,"cvr":1.99,"momUnitsPct":-7.4,"momSalesPct":-0.2,"wowUnits":[11,6,3,5],"impressions":131857,"clicks":679,"ctr":0.51,"cpc":16.05,"acos":20.08,"tacos":11.05,"cac":435.79},"B0BW44XN2L":{"sku":"S1 - Rabbito Blue","line":"SuperBuddy","units":0,"sales":0,"spend":827.46,"adSales":9599.71,"returns":0,"returnPct":null,"cvr":null,"momUnitsPct":null,"momSalesPct":null,"wowUnits":[0,0,0,0],"impressions":6542,"clicks":84,"ctr":1.29,"cpc":9.77,"acos":8.62,"tacos":null,"cac":null},"B0GW8LCV7B":{"sku":"DM25 - Ganpati","line":"DM25","units":177,"sales":167609.72,"spend":28598.27,"adSales":120178.88,"returns":16,"returnPct":9.04,"cvr":4.37,"momUnitsPct":321.4,"momSalesPct":309.2,"wowUnits":[33,46,47,51],"impressions":351223,"clicks":1991,"ctr":0.57,"cpc":14.36,"acos":23.8,"tacos":17.06,"cac":161.57},"B0GW8MCFJ8":{"sku":"DM25 - Hanuman","line":"DM25","units":244,"sales":227542.12,"spend":40188.79,"adSales":187214.37,"returns":24,"returnPct":9.84,"cvr":5.54,"momUnitsPct":525.6,"momSalesPct":484.2,"wowUnits":[39,48,68,89],"impressions":484485,"clicks":2867,"ctr":0.59,"cpc":14.02,"acos":21.47,"tacos":17.66,"cac":164.71}};
+const JUN_SKU_DATA={"B0FV3MP5FJ":{"units":1083,"sales":1065864.0,"spend":128001.62,"adSales":662847.95,"sessions":20776,"clicks":11050,"impressions":1856411,"ctr":0.6,"cpc":11.58,"acos":19.31,"tacos":12.01,"cvr":5.21,"cac":118.19},"B0FV3K9G8T":{"units":1008,"sales":977042.0,"spend":116084.85,"adSales":603818.47,"sessions":19659,"clicks":10081,"impressions":1352364,"ctr":0.75,"cpc":11.51,"acos":19.23,"tacos":11.88,"cvr":5.13,"cac":115.16},"B0FV3J2SGV":{"units":2808,"sales":2720548.0,"spend":334967.88,"adSales":1554801.02,"sessions":44754,"clicks":29214,"impressions":4488901,"ctr":0.65,"cpc":11.47,"acos":21.54,"tacos":12.31,"cvr":6.27,"cac":119.29},"B0F8QK1JB6":{"units":235,"sales":435564.0,"spend":108963.78,"adSales":383772.78,"sessions":18490,"clicks":10840,"impressions":2485509,"ctr":0.44,"cpc":10.05,"acos":28.39,"tacos":25.02,"cvr":1.27,"cac":463.68},"B0F8QJSNN2":{"units":271,"sales":511488.0,"spend":80684.11,"adSales":320769.39,"sessions":9813,"clicks":6085,"impressions":1241191,"ctr":0.49,"cpc":13.26,"acos":25.15,"tacos":15.77,"cvr":2.76,"cac":297.73},"B0FXFXDK3G":{"units":300,"sales":478836.0,"spend":105344.67,"adSales":413785.09,"sessions":13269,"clicks":8184,"impressions":863283,"ctr":0.95,"cpc":12.87,"acos":25.46,"tacos":22.0,"cvr":2.26,"cac":351.15},"B0FR1V9474":{"units":700,"sales":1260738.0,"spend":134898.61,"adSales":648937.06,"sessions":19137,"clicks":11069,"impressions":1924709,"ctr":0.58,"cpc":12.19,"acos":20.79,"tacos":10.7,"cvr":3.66,"cac":192.71},"B0F8QKMHGL":{"units":413,"sales":757242.0,"spend":127789.12,"adSales":460538.79,"sessions":23886,"clicks":11787,"impressions":2448938,"ctr":0.48,"cpc":10.84,"acos":27.75,"tacos":16.88,"cvr":1.73,"cac":309.42},"B0D6GMVJBL":{"units":0,"sales":0,"spend":0,"adSales":0,"sessions":0,"clicks":0,"impressions":0,"ctr":null,"cpc":null,"acos":null,"tacos":null,"cvr":null,"cac":null},"B0F3CMM1XZ":{"units":274,"sales":513743.0,"spend":69655.94,"adSales":256464.35,"sessions":9153,"clicks":6225,"impressions":710292,"ctr":0.88,"cpc":11.19,"acos":27.16,"tacos":13.56,"cvr":2.99,"cac":254.22},"B0F3CHXVSS":{"units":236,"sales":459540.0,"spend":70848.87,"adSales":352468.7,"sessions":7923,"clicks":5321,"impressions":536935,"ctr":0.99,"cpc":13.31,"acos":20.1,"tacos":15.42,"cvr":2.98,"cac":300.21},"B0F2419LKN":{"units":122,"sales":359760.0,"spend":49349.27,"adSales":212629.5,"sessions":7209,"clicks":4930,"impressions":823588,"ctr":0.6,"cpc":10.01,"acos":23.21,"tacos":13.72,"cvr":1.69,"cac":404.5},"B0F37SV15X":{"units":101,"sales":290806.0,"spend":42665.6,"adSales":197208.32,"sessions":5565,"clicks":3319,"impressions":531664,"ctr":0.62,"cpc":12.85,"acos":21.63,"tacos":14.67,"cvr":1.81,"cac":422.43},"B0BW46QP8V":{"units":27,"sales":98774.0,"spend":22974.0,"adSales":88859.62,"sessions":1625,"clicks":1299,"impressions":294029,"ctr":0.44,"cpc":17.68,"acos":25.85,"tacos":23.26,"cvr":1.66,"cac":850.89},"B0BW44XN2L":{"units":0,"sales":0,"spend":2527.02,"adSales":24277.42,"sessions":0,"clicks":301,"impressions":18436,"ctr":1.63,"cpc":8.39,"acos":10.41,"tacos":null,"cvr":null,"cac":null},"B0GW8LCV7B":{"units":42,"sales":40959.0,"spend":7868.44,"adSales":36380.46,"sessions":1065,"clicks":634,"impressions":72400,"ctr":0.88,"cpc":12.41,"acos":21.63,"tacos":19.21,"cvr":3.94,"cac":187.34},"B0GW8MCFJ8":{"units":39,"sales":38951.01,"spend":5765.45,"adSales":36389.83,"sessions":927,"clicks":549,"impressions":61828,"ctr":0.89,"cpc":10.5,"acos":15.84,"tacos":14.8,"cvr":4.21,"cac":147.83}};
+const REGION_SALES_DATA={"Mumbai":{"sales":1450293.61,"units":1121},"Bengaluru":{"sales":1907256.7,"units":1475},"Hyderabad":{"sales":1513030.27,"units":1170},"Delhi":{"sales":1508371.61,"units":1166},"Lucknow":{"sales":1046853.38,"units":809},"Chennai":{"sales":947572.09,"units":733},"Ahmedabad":{"sales":583782.26,"units":451},"Punjab":{"sales":342359.98,"units":265},"Kolkata":{"sales":747353.1,"units":578},"Nagpur":{"sales":305608.3,"units":236}};
+const REGION_RETURNS_DATA={"Kolkata":{"returns":34,"pct":5.01},"Mumbai":{"returns":157,"pct":23.12},"Lucknow":{"returns":64,"pct":9.43},"Hyderabad":{"returns":95,"pct":13.99},"Bengaluru":{"returns":116,"pct":17.08},"Coimbatore":{"returns":12,"pct":1.77},"Chennai":{"returns":28,"pct":4.12},"Delhi":{"returns":124,"pct":18.26},"Ahmedabad":{"returns":42,"pct":6.19},"Nagpur":{"returns":7,"pct":1.03},"Punjab":{"returns":0,"pct":0.0}};
+const CAMPAIGNS={"SD25":[{"name":"WonderBuddy-SB-Banner-SD25-PT-Competitor ASIN's-All Products","d1":[2766.86,12686.3,15,17410,203],"d2":[2280.69,13532.03,16,17348,174]},{"name":"WB_SD25 & DM25 All_SP_Product_Brand ASIN","d1":[2538.05,9307.54,11,19406,137],"d2":[2501.25,7613.48,11,17005,131]},{"name":"WonderBuddy - SD25 - SP - Comp ASIN - All Comp - All Products","d1":[2486.06,10149.01,12,4045,120],"d2":[2673.48,13532.03,17,4367,118]},{"name":"WonderBuddy-SD25-SP-GKW-Broad-Divine Toys -All Products-TOF","d1":[1488.18,6766.03,9,5748,94],"d2":[1382.52,11840.5,12,5398,67]},{"name":"WB_SD25_SP_Category_Interactive_Plush","d1":[1411.22,2537.25,3,20573,117],"d2":[899.25,845.75,1,15761,76]},{"name":"WonderBuddy - SD25 - SP - Category Soft Toy - All Products","d1":[1191.11,5074.5,6,15778,93],"d2":[455.04,845.75,1,7042,40]},{"name":"WB_SD25 All_SP_Baby_Carry_Cot_Product_Target","d1":[632.71,845.75,1,6508,37],"d2":[563.56,0.0,0,5198,32]},{"name":"WB_SD25 All_SP_Product_Top 100 Toys_ASIN","d1":[630.14,1691.5,2,11775,74],"d2":[405.66,0.0,0,10221,45]},{"name":"WonderBuddy-SD25-SP-Comp PT-Skillmatics-All Products-Test","d1":[618.03,1691.5,2,6508,40],"d2":[508.53,845.75,1,4190,35]},{"name":"WB_SD25 All_SP_ToysBuddy_Activity_Toys_Product_Target_Exact","d1":[520.16,2537.26,3,3953,33],"d2":[521.12,845.76,1,2993,31]},{"name":"WonderBuddy - SD25 - SP - Brand KWT - Phrase","d1":[512.23,845.75,1,3791,26],"d2":[303.83,5074.51,5,3591,18]},{"name":"WB_SD25 All_SP_Books_Products_Targets","d1":[473.35,0.0,0,4496,29],"d2":[419.94,0.0,0,5496,28]},{"name":"WonderBuddy-SD25-SP-GKW-Exact ST KT-All Mix-All Products","d1":[456.44,0.0,0,4553,23],"d2":[459.3,845.75,1,3409,24]},{"name":"WonderBuddy-SD25-SP-GKW-Broad-All Mix-All Products-TOF","d1":[450.09,1691.5,2,8510,46],"d2":[461.85,1691.51,2,9991,46]},{"name":"WB_SD25 All_SP_Sports & Outdoor_Products_Targets","d1":[447.51,845.75,1,7145,36],"d2":[550.14,0.0,0,7174,45]},{"name":"WonderBuddy - SD25 - SP - Category - Baby & Toddlers - All Products","d1":[436.45,1691.5,2,5693,40],"d2":[437.33,2537.25,3,6228,37]},{"name":"WB_SD25 All_SP_Imagimake_Comp_Products_Targets","d1":[404.93,0.0,0,4768,28],"d2":[425.11,0.0,0,6560,29]},{"name":"WB_SD25_SP_Category_Flash_Cards","d1":[400.68,0.0,0,2699,26],"d2":[432.79,1691.51,2,4335,26]},{"name":"WonderBuddy - SD25 - SP - GKW - Auto - All Products","d1":[400.36,845.75,1,15298,70],"d2":[404.58,1691.51,2,13521,62]},{"name":"WB_SD25 All_SP_Mirada_ Comp_Products_Targets","d1":[356.29,0.0,0,5183,38],"d2":[309.24,0.0,0,6875,34]},{"name":"WB_SD25 All_SP_Clapstore_Products_Targets","d1":[353.35,1691.5,2,4831,26],"d2":[433.82,845.75,1,3789,29]},{"name":"WB_SD25_SP_Soft_Toys_For_Girls_Boys_Phrase_KW","d1":[351.07,845.75,1,15117,40],"d2":[352.36,0.0,0,12399,38]},{"name":"WB_SD25_SP_Gift_KW_Broad","d1":[326.59,0.0,0,5611,27],"d2":[288.5,0.0,0,4986,23]},{"name":"WonderBuddy - SD25 - SP - Generic KWT - Phrase - Divine Plush Toys - All Products","d1":[311.56,845.75,1,1044,19],"d2":[560.96,4228.76,5,1241,26]},{"name":"WB_SD25 All_SP_Baby_Chair_Products_Targets_Expanded","d1":[309.38,0.0,0,2133,14],"d2":[507.52,845.75,1,2319,22]},{"name":"WB_SD25 All_SP_Baby_Walker_Products_Targets","d1":[302.84,2537.25,3,4787,24],"d2":[359.93,0.0,0,6205,29]},{"name":"WB_SD25 All_SP_Electrical_Vehicle_Toys_Products_Targets","d1":[296.94,0.0,0,2364,18],"d2":[405.01,0.0,0,2307,23]},{"name":"WB_SD25_SP_Gifts_All_Mix_Phrase_KW","d1":[294.79,845.75,1,13439,31],"d2":[130.14,0.0,0,6763,14]},{"name":"WB_SD25 All_SP_Wooden_Toys_Products_Targets_Expanded","d1":[248.19,0.0,0,6180,21],"d2":[345.4,845.75,1,4555,26]},{"name":"WonderBuddy_SD25_SB_Banner_Brand_Product_Target","d1":[218.43,0.0,0,3009,21],"d2":[451.13,845.75,1,3294,33]},{"name":"WonderBuddy - SD25 - SP - Category - Sound Toys  - All Products","d1":[214.26,0.0,0,6448,34],"d2":[138.09,0.0,0,5046,21]},{"name":"WB_SD25_SP_Competitor_Panda_Box_Exact_KW","d1":[199.26,0.0,0,1583,8],"d2":[409.76,0.0,0,2036,15]},{"name":"WB_SD25 All_SP_Intelliskills_Comp_Products_Targets","d1":[192.52,0.0,0,3383,15],"d2":[207.31,0.0,0,3225,17]},{"name":"WB_SD25 All_SP_Baby_Powder_Products_Targets","d1":[178.24,0.0,0,1384,13],"d2":[136.96,0.0,0,1538,11]},{"name":"WB_SD25 All_SP_Baby_Wet_Wipes_Products_Targets","d1":[177.52,0.0,0,2863,12],"d2":[193.93,0.0,0,2481,14]},{"name":"WB_SD25_SP_Toys_All_Mix_Phrase_KW","d1":[171.35,0.0,0,5744,18],"d2":[317.66,0.0,0,5421,34]},{"name":"WonderBuddy - SD25 - SP - Comp KWT - Exact - Panda Box - All Products","d1":[163.58,0.0,0,300,5],"d2":[122.74,845.75,1,442,6]},{"name":"WonderBuddy - SD25 - SP - Comp KWT - Phrase - Panda Box - All Products","d1":[154.91,0.0,0,655,7],"d2":[60.86,0.0,0,522,3]},{"name":"WB_SD25 All_SP_Curious_Cub_Products_Targets_Exact","d1":[149.0,845.75,1,1263,8],"d2":[323.34,0.0,0,1323,18]},{"name":"WB_SD25 All_SD_AP_VRMKT_LB_7_14_30_Days","d1":[142.76,0.0,0,5798,19],"d2":[84.55,0.0,0,4953,15]},{"name":"WB_SD25 All_SP_TEC_TAVAKKAL_Duck_Slide_Target_Product_Exact","d1":[133.98,0.0,0,3309,14],"d2":[214.61,845.75,1,3396,22]},{"name":"WB_SD25 All_SP_Activity_Play_Mats_Products_Targets_Exact","d1":[121.58,0.0,0,1843,11],"d2":[140.81,845.75,1,1543,10]},{"name":"WB_SD25 All_SP_Musical_Instruments_Stacking_Blocks_Product_Target_Exact","d1":[118.83,0.0,0,1646,13],"d2":[91.13,0.0,0,1338,10]},{"name":"WB_SD25 All_SP_Busy_Books_Products_Targets_Exact","d1":[107.87,0.0,0,1134,11],"d2":[17.41,0.0,0,1042,2]},{"name":"WB_SD25 All_SP_Baby_Carrier_Product_Target","d1":[82.46,0.0,0,1175,7],"d2":[106.72,0.0,0,2717,9]},{"name":"WB_SD25 All_SP_Rattles_Product_Target_Exact","d1":[79.92,845.75,1,878,7],"d2":[122.87,0.0,0,1104,11]},{"name":"WB_SD25 All_SP_Dancing_Monkey_Pengiun_Duck_Products_Targets","d1":[75.68,845.76,1,1743,9],"d2":[96.56,0.0,0,1761,11]},{"name":"WB_SD25 All_SP_Baby_Soap_Products_Targets","d1":[68.96,0.0,0,1259,7],"d2":[37.8,845.75,1,795,4]},{"name":"WB_SD25_SP_Storio_Cactus_Toy_Product_Target_Exact","d1":[64.72,0.0,0,1332,7],"d2":[27.84,0.0,0,232,3]},{"name":"WB_SD25_SP_Storio_Flash_Card_Product_Target_Exact","d1":[55.92,0.0,0,665,6],"d2":[8.7,0.0,0,272,1]},{"name":"WB_SD25_SP_DearJoy_Elephant_Soft_Toy_Product_Target_Exact","d1":[54.01,0.0,0,968,6],"d2":[17.88,0.0,0,414,2]},{"name":"WonderBuddy-SD25-SP-GKW-Phrase-All Mix-All Products-TOF","d1":[47.56,0.0,0,2003,7],"d2":[43.87,0.0,0,1514,7]},{"name":"WB_SD25 Hanuman_SP_Divine_All_Mix_Exact_KW","d1":[40.0,0.0,0,221,2],"d2":[30.12,0.0,0,199,2]},{"name":"WonderBuddy - SD25 - SBV - GKW - Phrase - Divine Soft Toys - All Products","d1":[34.55,0.0,0,187,4],"d2":[19.27,0.0,0,141,3]},{"name":"WB_SD25 All_SP_Wooden_Toys_Products_Targets_Exact","d1":[34.17,845.75,1,190,3],"d2":[67.98,0.0,0,273,4]},{"name":"WB_SD25_SP_Category_Early_Development_Toys","d1":[34.1,0.0,0,531,3],"d2":[108.19,0.0,0,753,9]},{"name":"WB_SD25 All_SP_Baby_Products_Multiple_Products_Targets","d1":[33.51,0.0,0,368,2],"d2":[107.23,0.0,0,597,7]},{"name":"WB_SD25_SP_Category_Special_Needs","d1":[30.09,0.0,0,206,3],"d2":[8.93,0.0,0,259,1]},{"name":"WB_SD25_SP_Category_Electronic _Pets","d1":[18.47,0.0,0,317,4],"d2":[7.98,845.75,1,223,2]},{"name":"WB_SD25 All_SP_Baby_Shampoo_Products_Targets_Expanded","d1":[18.29,0.0,0,372,2],"d2":[0,0,0,0,0]},{"name":"WB_SD25_SBV_Brand_Phrase & Exact_KW","d1":[10.58,0.0,0,23,1],"d2":[0,0,0,0,0]},{"name":"WB_SD25_SP_Wembley_Monkey_Musical_Toy_Product_Target_Exact","d1":[9.88,0.0,0,449,1],"d2":[0,0,0,0,0]},{"name":"WB_SD25_SP_Category_Baby_Toys","d1":[9.86,0.0,0,875,1],"d2":[33.75,0.0,0,685,4]},{"name":"WB_SD25_SP_Gifts_1_Year_Old_Girl_Exact_KW","d1":[3.54,0.0,0,15,1],"d2":[0,0,0,0,0]},{"name":"WB_SD25 All_SP_FlappyToys_Products_Targets","d1":[0,0,0,0,0],"d2":[7.81,0.0,0,207,1]},{"name":"WB_SD25 All_SP_Baby_Diaper_Products_Targets_Expanded","d1":[0,0,0,0,0],"d2":[31.99,0.0,0,226,3]},{"name":"WB_SD25 All_SP_Montessori_Toys_Category_Target","d1":[0,0,0,0,0],"d2":[23.05,0.0,0,267,3]},{"name":"WB_SD25_SP_Smartivity_Product_Target_Expanded","d1":[0,0,0,0,0],"d2":[41.66,0.0,0,632,4]},{"name":"WB_SD25 All_SP_Baby_Fashion_Category_Target","d1":[0,0,0,0,0],"d2":[22.26,0.0,0,247,2]},{"name":"WB_SD25 All_SP_Kiddale_Products_Targets_Exact","d1":[0,0,0,0,0],"d2":[10.53,0.0,0,58,1]},{"name":"WB_SD25 All_SP_DearJoy_Soft_Toys_Product_Target_Exact","d1":[0,0,0,0,0],"d2":[37.13,0.0,0,512,4]}],"M20":[{"name":"WB_M20 All_SP_GKW_Mix Keywords_Broad","d1":[5480.76,10159.29,6,102712,390],"d2":[5997.93,22857.54,14,71200,366]},{"name":"WonderBuddy - M20 All Products - SP - PT - Carvaan - BOF - Modified - SP17","d1":[1210.25,3978.79,3,2863,49],"d2":[1935.92,11599.12,7,2694,70]},{"name":"WonderBuddy_M20 All_SP_GKW_Phrase_Karaoke_Speaker_BOF","d1":[1026.92,3386.43,2,15893,75],"d2":[750.56,0.0,0,10759,53]},{"name":"Wonder Buddy-M20-SP-KW-GKW-Toys-All Products-BMM-TOS 50","d1":[994.39,1693.22,1,43100,107],"d2":[792.58,3386.43,2,29152,85]},{"name":"WB_M20 All_SP_GKW_Mix Keywords_Broad Modifier","d1":[803.25,0.0,0,12550,58],"d2":[863.01,8212.7,5,10193,60]},{"name":"WonderBuddy - M20 - SP - Brand KW - Phrase - Modified - SP01","d1":[802.6,6519.48,4,7738,66],"d2":[358.13,3386.43,2,6020,27]},{"name":"WonderBuddy_M20 All_SP_GKW_Phrase_Toys_TOS","d1":[748.8,0.0,0,19797,57],"d2":[771.21,6772.86,4,11592,57]},{"name":"WB_M20 TDD_SP_GKW_Boy Gifts_Broad Modifier","d1":[629.4,0.0,0,11234,50],"d2":[616.2,0.0,0,8675,46]},{"name":"WB_M20 TD_SP_Category_Flash Cards","d1":[494.88,0.0,0,4658,58],"d2":[499.7,0.0,0,4702,59]},{"name":"WB_M20 All_SP_Product_Target_Expanded_Performing_ASIN","d1":[472.93,3386.44,1,6427,60],"d2":[513.84,4826.26,3,5735,70]},{"name":"Wonder Buddy-M20-SBV-KW-GKW-Gifting KW-Below 5 yearsTOF","d1":[455.96,0.0,0,23470,69],"d2":[451.79,0.0,0,18046,67]},{"name":"WonderBuddy-M20-SP-PT-Top 100 ASIN's-All Products-TOF","d1":[427.08,0.0,0,6928,68],"d2":[371.33,0.0,0,6373,60]},{"name":"WonderBuddy - M20 Dino & Unicorn - SP - PT - Science Kit - TOF","d1":[384.25,0.0,0,4136,39],"d2":[223.75,0.0,0,3151,22]},{"name":"WB_M20_SP_Play_Tools_Product_Target","d1":[371.64,1693.22,1,6774,39],"d2":[245.36,0.0,0,4744,27]},{"name":"WB_M20 U&D_SP_Category_Science Toys & Kits","d1":[354.13,0.0,0,3751,38],"d2":[234.95,0.0,0,3458,24]},{"name":"WB_M20 Dragon_SD_VCPM_AP_7_14_30_Days","d1":[350.95,1693.22,1,14271,36],"d2":[351.35,1693.21,1,13387,32]},{"name":"WonderBuddy - M20 All Products - SP - PT - Brand ASIN - BOF - Modified - SP18","d1":[350.63,0.0,0,2008,20],"d2":[343.16,0.0,0,1904,17]},{"name":"WonderBuddy - M20 All Products - SD - AP - VRMKT - LB - 7 - 14 - 30","d1":[338.69,0.0,0,11188,52],"d2":[400.75,1693.21,1,10496,38]},{"name":"WonderBuddy - M20 All Products - SP - GKW - Exact - All Mix - TOF - 02","d1":[331.99,0.0,0,7235,31],"d2":[327.06,1693.21,1,5429,30]},{"name":"WonderBuddy - M20 Tiger - SP - GKW - Girls - Gift - All Mix - Exact","d1":[280.19,0.0,0,4099,20],"d2":[175.83,0.0,0,3547,12]},{"name":"WB_M20 Dragon_SP_GKW_Gift_Broad","d1":[238.32,1693.22,1,7516,21],"d2":[157.53,1693.22,1,3762,14]},{"name":"Wonder Buddy-M20-SP-KW-GKW-Storytelling KW-All Products-P-TOS 50-BOF","d1":[234.4,1439.82,1,1596,19],"d2":[182.55,4826.26,3,801,17]},{"name":"WB_M20 Dino_SD_VCPM_AP_7_14_30_Days","d1":[210.24,3386.42,2,12713,37],"d2":[288.04,1693.21,1,17963,47]},{"name":"WonderBuddy - M20 All - SP - Auto - TOF - Modified - SP13","d1":[186.33,1693.21,1,9929,55],"d2":[175.38,1439.83,1,8591,53]},{"name":"WonderBuddy_M20_SP_KW_Phrase_Carvaan Comp_All Products_BOF","d1":[185.55,0.0,0,819,11],"d2":[87.06,0.0,0,760,3]},{"name":"WB_M20 All_SP_GKW_Kids Gifts_Broad Modifier","d1":[167.81,0.0,0,2637,12],"d2":[151.82,0.0,0,1682,11]},{"name":"WonderBuddy - M20 Dragon & Tiger - SP - PT - Flash Cards - TOF","d1":[156.84,0.0,0,1626,16],"d2":[149.79,0.0,0,1572,15]},{"name":"WB_M20 All_SD_InMarket_Category_Targets_Conversion","d1":[104.94,0.0,0,14229,40],"d2":[14.41,0.0,0,7032,28]},{"name":"WB_M20 All_SP_Category_Karaoke Mic","d1":[41.76,0.0,0,854,7],"d2":[25.93,0.0,0,806,4]},{"name":"WonderBuddy - M20 All Products - SD - CT - Electronic Toys - Price Wise - TOF","d1":[40.55,0.0,0,2073,3],"d2":[7.66,0.0,0,1857,1]},{"name":"WB_M20 All_SP_Category_Phrase_KW","d1":[34.89,0.0,0,717,3],"d2":[57.89,0.0,0,504,4]},{"name":"WonderBuddy - M20 All Products - SP - GKW - kids toys for 2 - 5 years boy - Exact - Test","d1":[33.22,0.0,0,88,2],"d2":[39.84,0.0,0,79,2]},{"name":"WB_M20 TDD_SP_GKW_Boy Toys_Broad Modifier","d1":[29.42,0.0,0,313,3],"d2":[22.16,0.0,0,248,2]},{"name":"WB_M20 All_SP_Festive_Phrase_KW","d1":[27.33,0.0,0,408,2],"d2":[26.67,0.0,0,332,2]},{"name":"WB_M20 All_SBV_Phrase_GKW_Storytelling","d1":[21.95,0.0,0,37,2],"d2":[0,0,0,0,0]},{"name":"WB_M20 TDG_SP_Category_Early Development Toys","d1":[17.5,0.0,0,179,2],"d2":[13.21,0.0,0,213,2]},{"name":"WB_M20 All_SP_Category_Storytelling Toys","d1":[16.63,0.0,0,706,1],"d2":[57.22,0.0,0,705,4]},{"name":"WonderBuddy - M20 All Products - SD - PT - Other Comp - MOF","d1":[15.83,0.0,0,3814,4],"d2":[147.14,0.0,0,7988,20]},{"name":"WB_M20 Dino_SBV_GKW_Mix_Broad","d1":[11.0,0.0,0,96,1],"d2":[0,0,0,0,0]},{"name":"WB_M20 Unicorn_SBV_GKW_Mix_Broad","d1":[7.19,0.0,0,922,1],"d2":[0,0,0,0,0]},{"name":"WonderBuddy - M20 All Products - SD - CT- Sound - Toys - Price wise - TOF","d1":[3.18,0.0,0,940,1],"d2":[10.55,0.0,0,992,2]},{"name":"WB_M20_SD_AMC_Add_to Cart_Conversion","d1":[2.52,0.0,0,250,1],"d2":[4.82,0.0,0,611,2]},{"name":"WonderBuddy - M20 All Products - SP - CT - Learning Toys","d1":[0,0,0,0,0],"d2":[26.52,0.0,0,127,2]},{"name":"WonderBuddy - M20 All Products - SD - PT - Comp - Carvan - BOF","d1":[0,0,0,0,0],"d2":[11.39,0.0,0,934,1]}],"SuperBuddy":[{"name":"SuperBuddy_SP_Competitor_Carvaan_ASIN_Exact_S12-BOF","d1":[880.94,3388.11,2,1391,40],"d2":[1379.22,6776.25,4,1412,53]},{"name":"SuperBuddy_SP_Generic_Gifting KWT_Broad_All Products_Apr 25-TOF","d1":[454.79,1694.06,1,5610,52],"d2":[796.7,3388.13,2,7126,82]},{"name":"SuperBuddy_SP_Generic_Kids Speaker & Radio KWT_Broad_All Products_Apr 25-BOF","d1":[238.14,0.0,0,1734,17],"d2":[318.44,0.0,0,597,13]},{"name":"SuperBuddy_SP_Generic_Gifts KWT_Broad_All Products-TOF","d1":[178.84,0.0,0,2915,30],"d2":[71.78,0.0,0,2490,12]},{"name":"SuperBuddy_SP_Generic_Age Group KWT_Exact_All Products-TOF","d1":[149.01,0.0,0,1245,14],"d2":[147.26,0.0,0,1035,13]},{"name":"SuperBuddy_SP_Brand_ASIN_Exact_All Products-BOF","d1":[96.89,0.0,0,503,6],"d2":[96.32,0.0,0,390,6]},{"name":"SuperBuddy_SP_Brand_ASIN_Exact_S12_S&u-SelfASIN-BOF","d1":[91.1,0.0,0,681,8],"d2":[41.12,0.0,0,676,4]},{"name":"SuperBuddy_SP_Generic_Auto_All Products_2nd-TOF","d1":[80.7,0.0,0,2451,21],"d2":[97.63,0.0,0,2236,25]},{"name":"SuperBuddy - SP - Generic - S12 - Toys KWT - Broad-TOF","d1":[70.51,0.0,0,1381,9],"d2":[30.04,1694.06,1,905,6]},{"name":"SuperBuddy_SP_Generic_Storytelling KWT_Broad_All Products_Apr 25-BOF","d1":[63.11,0.0,0,290,7],"d2":[75.27,0.0,0,254,6]},{"name":"SuperBuddy_SB_Competitor_Carvaan ASIN_Exact_Storepage Banner_S11-BOF","d1":[53.56,0.0,0,443,5],"d2":[16.19,0.0,0,418,2]},{"name":"SuperBuddy_SP_Brand_KWT_Phrase_All Products-BOF","d1":[45.01,0.0,0,211,3],"d2":[113.6,1694.06,1,157,10]},{"name":"SuperBuddy - SP - S11 - D&U - KWT Phrase - Kids & Girls Gifts - New-TOF","d1":[34.57,0.0,0,685,4],"d2":[49.58,0.0,0,586,7]},{"name":"SuperBuddy_SP_Brand_KWT_Exact_All Products_2 Ad Group-BOF","d1":[33.01,3388.13,2,59,5],"d2":[32.74,1694.05,1,150,4]},{"name":"SuperBuddy - SP Category Age Range PT - All Products-TOF","d1":[23.52,0.0,0,387,6],"d2":[29.95,0.0,0,291,7]},{"name":"SuperBuddy_SP_Competitor_Playshifu_ASIN_Exact_All Products-MOF","d1":[12.7,0.0,0,70,1],"d2":[34.19,0.0,0,133,3]},{"name":"SuperBuddy_SP_Generic_Gifts KWT_Exact_S12-TOF","d1":[9.65,0.0,0,573,1],"d2":[70.73,0.0,0,793,8]},{"name":"SuperBuddy - SP - All Products - Category \"Storytelling Toys\"-BOF","d1":[6.64,0.0,0,217,1],"d2":[11.22,0.0,0,200,2]},{"name":"SuperBuddy_SP_Generic_Kids Speaker KWT_Exact_S12-BOF","d1":[0,0,0,0,0],"d2":[54.19,0.0,0,41,2]},{"name":"SuperBuddy_SP_Competitor_Carvaan_KWT_Exact_All Products-BOF","d1":[0,0,0,0,0],"d2":[11.92,0.0,0,103,1]},{"name":"SuperBuddy_SP_Brand_KWT_Exact_All Products-BOF","d1":[0,0,0,0,0],"d2":[25.01,0.0,0,50,1]},{"name":"SuperBuddy_SD_Generic_Storytelling Toys - 1200rs Category_All Products","d1":[0,0,0,0,0],"d2":[4.54,0.0,0,358,1]},{"name":"SuperBuddy_SD_Brand_ASIN_Exact_All Products-Self-Asin-BOF","d1":[0,0,0,0,0],"d2":[46.56,0.0,0,500,2]}],"DM25":[{"name":"WB_DM25 All_SP_Books_Products_Targets","d1":[741.7,1693.2,2,7766,42],"d2":[759.11,1693.2,2,10389,41]},{"name":"WonderBuddy_DM25_SP_Generic_Phrase_Divine_Plush_Toys_KWs","d1":[697.97,4231.32,5,5651,45],"d2":[527.89,7616.86,9,5110,38]},{"name":"WB_DM25 All_SP_Sports & Outdoor_Products_Targets_Expanded","d1":[334.91,2539.8,3,11199,30],"d2":[299.68,0.0,0,9077,27]},{"name":"WonderBuddy - DM25 - SP - Comp PT - Exact - Panda Box - All Products","d1":[202.89,0.0,0,1821,12],"d2":[162.29,846.6,1,2285,9]},{"name":"WonderBuddy - DM25 - SP - Comp KWT - Phrase - Panda Box - All Products","d1":[170.84,0.0,0,240,6],"d2":[26.24,0.0,0,215,1]},{"name":"WB_DM25_SP_Category_Flash_Cards","d1":[149.03,0.0,0,2586,10],"d2":[149.41,0.0,0,2324,10]},{"name":"WonderBuddy - DM25 Hanuman - SP - GKW - Auto - All Products","d1":[67.69,0.0,0,4710,10],"d2":[169.34,846.6,1,5689,26]},{"name":"WonderBuddy - DM25 - SP - Comp KWT - Exact - Panda Box - All Products","d1":[54.92,0.0,0,211,3],"d2":[130.12,0.0,0,277,4]},{"name":"WonderBuddy - DM25 Ganesh - SP - GKW - Auto - All Products","d1":[54.58,0.0,0,3005,9],"d2":[48.21,0.0,0,2012,8]},{"name":"WonderBuddy - DM25 - SP - Comp ASIN - All Comp - All Products","d1":[5.41,0.0,0,305,1],"d2":[31.99,0.0,0,329,2]}]};
+
+/* ---- MTD summary cards + Week-on-week dropdown (per line, overview) ---- */
+const MTD_CARDS=[
+  {key:"units",lbl:"MTD Units",kind:"int",acc:"var(--red)",mom:"momUnitsPct",good:"up"},
+  {key:"sales",lbl:"MTD Sales",kind:"money",acc:"var(--teal)",mom:"momSalesPct",good:"up"},
+  {key:"spend",lbl:"MTD Ad Spend",kind:"money",acc:"var(--yellow)",mom:"momSpendPct",good:"up"},
+  {key:"acos",lbl:"MTD ACoS",kind:"pct",acc:"var(--pink)",mom:"momAcosPts",momIsPts:true,good:"down"},
+  {key:"totalCvr",lbl:"MTD Total CVR",kind:"pct",acc:"var(--yellow)",mom:"momCvrPts",momIsPts:true,good:"up"},
+  {key:"returnPct",lbl:"MTD Return %",kind:"pct",acc:"var(--red)",good:"down"},
+  {key:"returns",lbl:"MTD Returns",kind:"int",acc:"var(--teal-light)"}
+];
+const WOW_COLS=[
+  {key:"units",lbl:"Units",kind:"int",good:"up"},
+  {key:"sales",lbl:"Sales",kind:"money",good:"up"},
+  {key:"spend",lbl:"Ad Spend",kind:"money",good:"up"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down"},
+  {key:"tacos",lbl:"TACoS",kind:"pct",good:"down"},
+  {key:"roas",lbl:"RoAS",kind:"x",good:"up"},
+  {key:"sessions",lbl:"Sessions",kind:"int",good:"up"},
+  {key:"pageViews",lbl:"Page Views",kind:"int",good:"up"},
+  {key:"totalCvr",lbl:"Total CVR",kind:"pct",good:"up"},
+  {key:"adsCvr",lbl:"Ads CVR",kind:"pct",good:"up"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up"},
+  {key:"impressions",lbl:"Impr",kind:"int",good:"up"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down"},
+  {key:"cac",lbl:"CAC",kind:"money2",good:"down"},
+  {key:"returns",lbl:"Returns",kind:"int",good:"down"}
+];
+/* per-SKU MTD columns (July value on top, June comparison below).
+   jkey lets a July key map to a differently-named June key; omitted = same key.
+   June per-SKU has no returns baseline, so Return %/Returned Units show July only. */
+const MTD_SKU_COLS=[
+  {key:"units",lbl:"MTD Units",kind:"int",good:"up"},
+  {key:"sales",lbl:"MTD Sales",kind:"money",good:"up"},
+  {key:"spend",lbl:"MTD Ad Spend",kind:"money",good:"up"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up"},
+  {key:"returnPct",lbl:"Return %",kind:"pct",good:"down",jkey:"__none"},
+  {key:"cvr",lbl:"Total CVR",kind:"pct",good:"up"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up"},
+  {key:"impressions",lbl:"Impressions",kind:"int",good:"up"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down"},
+  {key:"cac",lbl:"CAC",kind:"money2",good:"down"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down"},
+  {key:"tacos",lbl:"TACoS",kind:"pct",good:"down"},
+  {key:"returns",lbl:"Returned Units",kind:"int",good:"down",jkey:"__none"}
+];
+function momArrow(pct,good,isPts){
+  if(pct==null) return "";
+  const up=pct>0, g=(good==='up'&&up)||(good==='down'&&!up);
+  const suf=isPts?" pts":"%";
+  return `<span class="mom-pill ${g?'g':'b'}">${up?AU:AD} ${Math.abs(pct).toFixed(1)}${suf} vs Jun</span>`;
+}
+function wowTrendBadge(weekArr,key,good){
+  if(!weekArr||weekArr.length<2) return "";
+  const last=weekArr[weekArr.length-1][key], prev=weekArr[weekArr.length-2][key];
+  if(last==null||prev==null||prev===0) return "";
+  const pct=(last-prev)/Math.abs(prev)*100, up=pct>0, g=(good==='up'&&up)||(good==='down'&&!up);
+  return `<span class="wow-pill ${g?'g':'b'}">${up?AU:AD} ${Math.abs(pct).toFixed(1)}% wk/wk</span>`;
+}
+// Two-line comparison cell (screenshot style): bold current value on top,
+// smaller comparison value with a coloured up/down arrow below.
+// good: 'up' means higher-is-better (arrow green when up); 'down' inverts.
+function cmpCell(cur_v, prev_v, kind, good, curcode){
+  const top = `<div class="cell1">${fmt(cur_v,kind,curcode)}</div>`;
+  if(prev_v==null || cur_v==null || isNaN(prev_v) || isNaN(cur_v)){
+    return `<td>${top}</td>`;
+  }
+  const p = pctChange(cur_v, prev_v);
+  if(p==null || Math.abs(p)<0.05){
+    return `<td>${top}<div class="cell2">${fmt(prev_v,kind,curcode)}</div></td>`;
+  }
+  const up = p>0;
+  const g = (good==='up'&&up)||(good==='down'&&!up);
+  return `<td>${top}<div class="cell2"><span class="ar ${g?'g':'b'}">${up?AU:AD}</span>${fmt(prev_v,kind,curcode)}</div></td>`;
+}
+
+function mtdWowHTML(line,cur){
+  const name=line.name, chip=line.chip;
+  const m=MTD_DATA[name]; if(!m) return "";
+  const wk=WEEKLY_DATA[name]||[];
+  const cards=MTD_CARDS.map(c=>{
+    const mom = c.mom? momArrow(m[c.mom], c.good, !!c.momIsPts) : "";
+    const trend = wowTrendBadge(wk, c.key==='totalCvr'?'totalCvr':(c.key==='returnPct'?'returns':c.key), c.good);
+    return `<div class="card mtd-card" style="--acc:${c.acc}"><div class="lbl">${c.lbl}</div><div class="val">${fmt(m[c.key],c.kind,cur)}</div><div class="row mtd-row">${mom}${trend}</div></div>`;
+  }).join("");
+
+  /* ---- per-SKU MTD table: July vs June, two-line comparison cells ---- */
+  const skuRows=line.skus.map(s=>{
+    const sm=SKU_MTD_DATA[s.asin]; if(!sm) return "";
+    const jn=(typeof JUN_SKU_DATA!=="undefined"?JUN_SKU_DATA[s.asin]:null)||{};
+    const wowVals=sm.wowUnits||[];
+    const up = wowVals.length>=2 && wowVals[wowVals.length-1]>wowVals[wowVals.length-2];
+    const wowStr = wowVals.join(" → ");
+    const wowArrow = wowVals.length>=2 ? `<span class="ar ${up?'g':'b'}">${up?AU:AD}</span>` : "";
+    return `<tr><td class="sku"><div class="nm">${sm.sku}</div><div class="as">${s.asin}</div></td>`+
+      MTD_SKU_COLS.map(c=>cmpCell(sm[c.key], (c.jkey!==undefined?jn[c.jkey]:jn[c.key]), c.kind, c.good, cur)).join("")+
+      `<td class="wow-cell">${wowStr} ${wowArrow}</td></tr>`;
+  }).join("");
+  const skuHead=`<tr><th class="sku">SKU</th>${MTD_SKU_COLS.map(c=>`<th>${c.lbl}</th>`).join("")}<th>Week-on-week Units (W1→W4)</th></tr>`;
+  const skuTable=`<div class="tbl-wrap" style="margin-top:10px"><table><thead>${skuHead}</thead><tbody>${skuRows}</tbody></table></div>`;
+
+  /* ---- week-on-week table: each week vs the prior week, two-line comparison cells ---- */
+  const head=`<tr><th class="sku">Week</th>${WOW_COLS.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  const body=wk.map((w,i)=>{
+    const prev = i>0 ? wk[i-1] : null;
+    return `<tr><td class="sku"><div class="nm">${w.wk}</div><div class="as">${w.label}</div></td>`+
+      WOW_COLS.map(c=>cmpCell(w[c.key], prev?prev[c.key]:null, c.kind, c.good, cur)).join("")+`</tr>`;
+  }).join("");
+  const table=`<div class="tbl-wrap" style="margin-top:10px"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+
+  return `<div class="mtd-head"><span class="mtd-tag" style="--chip:${chip}">MTD · ${name}</span><span class="rule" style="--chip:${chip}"></span><span class="hint">month-to-date, Jul 1–28 · vs Jun 1–28</span></div>`+
+    `<div class="grid mtd-grid">${cards}</div>`+
+    `<details class="wow" open><summary><span class="wow-caret">▸</span> MTD by SKU — growth / degrowth <span class="wow-sub">· each cell: July on top, June below · WoW trend across 4 weeks</span></summary>${skuTable}</details>`+
+    `<details class="wow"><summary><span class="wow-caret">▸</span> Week-on-week performance <span class="wow-sub">· each cell: current week on top, prior week below · ${wk.length} weeks</span></summary>${table}</details>`;
+}
+function campaignSection(lineName,cur){
+  const rows=CAMPAIGNS[lineName]||[]; if(!rows.length) return "";
+  const head=`<tr><th class="sku">Campaign</th>${BD_COLS.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  const body=rows.map(r=>{const a=bdMetrics(r.d1), b=bdMetrics(r.d2);
+    return `<tr><td class="sku camp"><div class="nm">${r.name}</div></td>${BD_COLS.map(col=>tCell(a,b,col,cur)).join("")}</tr>`;}).join("");
+  const tot=rows.reduce((ac,r)=>{["d1","d2"].forEach(d=>r[d].forEach((v,i)=>ac[d][i]+=v));return ac;},{d1:[0,0,0,0,0],d2:[0,0,0,0,0]});
+  const ta=bdMetrics(tot.d1), tb=bdMetrics(tot.d2);
+  const totRow=`<tr class="totrow"><td class="sku">All ${rows.length} campaigns</td>${BD_COLS.map(col=>tCell(ta,tb,col,cur)).join("")}</tr>`;
+  return `<div class="section-head bd-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">Campaigns — row by row</span><span class="rule"></span><span class="hint">every campaign · all ad metrics · D-1 vs D-2 · sorted by D-1 spend</span></div>`+
+    `<div class="tbl-wrap camp-wrap" style="margin-top:12px"><table><thead>${head}</thead><tbody>${body}${totRow}</tbody></table></div>`;
+}
+
+function renderIndia(){
+  const g=DASHBOARD_DATA.india, cur=g.currency;
+  const all=g.lines.flatMap(l=>l.skus);
+  const G1=agg(all,"d1"), G2=agg(all,"d2");
+  const p=g.placement;
+  if(p){ G1.tos = p.d1.totalSales? p.d1.tosSales/p.d1.totalSales*100 : null;
+         G2.tos = p.d2.totalSales? p.d2.tosSales/p.d2.totalSales*100 : null; }
+  const nd=iso=>iso?new Date(iso+"T00:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}):"—";
+  document.getElementById("reportDay").textContent=nd(g.d1Date);
+  document.getElementById("prevDay").textContent=nd(g.d2Date);
+  document.getElementById("g-hero").innerHTML=HERO.map(m=>heroCard(m,G1,G2,cur)).join("");
+  document.getElementById("g-total").innerHTML=TOTAL.map(m=>miniCard(m,G1,G2,cur)).join("");
+  document.getElementById("g-ads").innerHTML=ADS.map(m=>miniCard(m,G1,G2,cur)).join("");
+  document.getElementById("lines").innerHTML=g.lines.map(line=>oneLineHTML(line,cur)).join("");
+}
+function oneLineHTML(line,cur){
+  const L1=agg(line.skus,"d1"), L2=agg(line.skus,"d2");
+  const cards=LINE_CARDS.map(m=>miniCard(m,L1,L2,cur)).join("");
+  const head=`<tr><th class="sku">SKU</th><th class="bsr-h">BSR 1</th><th class="bsr-h">BSR 2</th>${COLS.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  const rows=line.skus.map(s=>{
+    const a=withRatios({...s.d1,fba:s.fba}), b=withRatios({...s.d2,fba:s.fba});
+    const bsr=x=>`<div><span class="cat">${x[0]}</span> <span class="rk">${x[1]}</span></div>`;
+    return `<tr><td class="sku"><div class="nm">${s.sku}</div><div class="as">${s.asin}</div></td><td class="bsr">${bsr(s.bsr[0])}</td><td class="bsr">${bsr(s.bsr[1])}</td>${COLS.map(c=>tCell(a,b,c,cur)).join("")}</tr>`;}).join("");
+  const tot=`<tr class="totrow"><td class="sku">${line.name} total</td><td class="bsr"></td><td class="bsr"></td>${COLS.map(c=>tCell(L1,L2,c,cur)).join("")}</tr>`;
+  return `<div class="line-head"><span class="line-chip" style="--chip:${line.chip}">${line.name}</span><span class="line-count">${line.skus.length} SKUs</span><span class="rule" style="--chip:${line.chip}"></span></div><div class="grid">${cards}</div><div class="tbl-wrap"><table><thead>${head}</thead><tbody>${rows}${tot}</tbody></table></div>` + mtdWowHTML(line,cur);
+}
+function renderLinePages(){
+  const g=DASHBOARD_DATA.india, cur=g.currency;
+  g.lines.forEach(line=>{
+    const el=document.getElementById("india-"+line.name);
+    if(el) el.innerHTML=oneLineHTML(line,cur)+breakdownHTML(line.name,cur);
+  });
+}
+const BD_TYPE_ORDER=["Sponsored Products","Sponsored Brands","Sponsored Display"];
+const BD_MATCH_ORDER=["Broad","Phrase","Exact","Category","Product Exact","Product Expanded","Auto","Audience/Views"];
+const BD_INTENT_ORDER=["Branded","Panda Box","Carvaan","Divine","Gifting","Generic"];
+const BD_ACC=["var(--red)","var(--teal)","var(--yellow)","var(--pink)","var(--teal-light)","#8a63d2","#E0A106","#2E7F77"];
+const BD_COLS=[
+  {key:"adSpend",lbl:"Ad Spend",kind:"money",good:"up"},
+  {key:"adSales",lbl:"Ad Sales",kind:"money",good:"up"},
+  {key:"adOrders",lbl:"Ad Units",kind:"int",good:"up"},
+  {key:"acos",lbl:"ACoS",kind:"pct",good:"down"},
+  {key:"roas",lbl:"RoAS",kind:"x",good:"up"},
+  {key:"clicks",lbl:"Clicks",kind:"int",good:"up"},
+  {key:"impressions",lbl:"Impr",kind:"int",good:"up"},
+  {key:"ctr",lbl:"CTR",kind:"pct",good:"up"},
+  {key:"cvr",lbl:"CVR",kind:"pct",good:"up"},
+  {key:"cpc",lbl:"CPC",kind:"money2",good:"down"}
+];
+function bdMetrics(a){ const s=a[0],sa=a[1],o=a[2],im=a[3],cl=a[4];
+  return {adSpend:s,adSales:sa,adOrders:o,acos:sa?s/sa*100:null,roas:s?sa/s:null,clicks:cl,impressions:im,ctr:im?cl/im*100:null,cvr:cl?o/cl*100:null,cpc:cl?s/cl:null}; }
+function bdSection(title,hint,dimData,order,cur){
+  const cats=order.filter(c=>dimData[c]);
+  if(!cats.length) return "";
+  const cards=cats.map((c,i)=>{
+    const acc=BD_ACC[i%BD_ACC.length];
+    const a=bdMetrics(dimData[c].d1), b=bdMetrics(dimData[c].d2);
+    return `<div class="card bd-card" style="--acc:${acc}"><div class="lbl">${c}</div>`+
+      `<div class="val">${fmt(a.adSpend,"money",cur)}</div>`+
+      `<div class="row">${deltaPill(a.adSpend,b.adSpend,"up")}<span class="prev">vs ${fmt(b.adSpend,"money",cur)}</span></div>`+
+      `<div class="bd-mini"><span>Sales <b>${fmt(a.adSales,"money",cur)}</b></span><span>RoAS <b>${fmt(a.roas,"x",cur)}</b></span><span>ACoS <b>${fmt(a.acos,"pct",cur)}</b></span></div></div>`;
+  }).join("");
+  const head=`<tr><th class="sku">${title.split(" ")[0]}</th>${BD_COLS.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  const rows=cats.map(c=>{
+    const a=bdMetrics(dimData[c].d1), b=bdMetrics(dimData[c].d2);
+    return `<tr><td class="sku"><div class="nm">${c}</div></td>${BD_COLS.map(col=>tCell(a,b,col,cur)).join("")}</tr>`;
+  }).join("");
+  // totals row
+  const tot=cats.reduce((ac,c)=>{["d1","d2"].forEach(d=>{dimData[c][d].forEach((v,i)=>ac[d][i]+=v);});return ac;},{d1:[0,0,0,0,0],d2:[0,0,0,0,0]});
+  const ta=bdMetrics(tot.d1), tb=bdMetrics(tot.d2);
+  const totRow=`<tr class="totrow"><td class="sku">Total</td>${BD_COLS.map(col=>tCell(ta,tb,col,cur)).join("")}</tr>`;
+  return `<div class="section-head bd-head"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><use href="#s"/></svg><span class="n">${title}</span><span class="rule"></span><span class="hint">${hint}</span></div>`+
+    `<div class="grid bd-grid">${cards}</div>`+
+    `<div class="tbl-wrap" style="margin-top:14px"><table><thead>${head}</thead><tbody>${rows}${totRow}</tbody></table></div>`;
+}
+function breakdownHTML(lineName,cur){
+  const B=BREAKDOWN[lineName]; if(!B) return "";
+  return `<div class="bd-wrap">`+
+    bdSection("Campaign Type","D-1 vs D-2 · SP / SB / SD",B.type,BD_TYPE_ORDER,cur)+
+    bdSection("Match Type","D-1 vs D-2 · keyword & product targeting",B.match,BD_MATCH_ORDER,cur)+
+    campaignSection(lineName,cur)+
+    `</div>`;
+}
+function selectIndiaSub(sub){
+  const subs=["overview","SD25","M20","SuperBuddy","DM25"];
+  subs.forEach(s=>{ const el=document.getElementById(s==="overview"?"india-overview":"india-"+s); if(el) el.classList.toggle("hidden", s!==sub); });
+  document.querySelectorAll(".spill").forEach(b=>b.setAttribute("aria-selected", b.dataset.sub===sub?"true":"false"));
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function selectGeo(geo){const india=geo==="india";
+  document.getElementById("tab-india").setAttribute("aria-selected",india);
+  document.getElementById("tab-usa").setAttribute("aria-selected",!india);
+  document.getElementById("panel-india").classList.toggle("hidden",!india);
+  document.getElementById("panel-usa").classList.toggle("hidden",india);
+  if(india) renderIndia();}
+(function(){const t=new Date(DASHBOARD_DATA.refreshedAtISO);document.getElementById("stamp").textContent=t.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+" IST";})();
+renderIndia();
+renderLinePages();
+
+/* ================= INVENTORY OVERVIEW ================= */
+const INV_DATA={"Mumbai":{"lat":19.07,"lng":72.87,"skus":{"SD25 - Krishna":395,"SD25 - Hanuman":529,"SD25 - Ganesh":644,"M20 - Dino":64,"M20 - Dragon":322,"M20 - Giraffe":46,"M20 - Tiger":4,"M20 - Unicorn":49,"S12 - Unicorn":32,"S12 - Space":34,"S11 - Dino":1,"S11 - Unicorn":1,"S1 - Rabbito Red":4,"DM25 - Ganpati":87,"DM25 - Hanuman":77}},"Hyderabad":{"lat":17.38,"lng":78.49,"skus":{"SD25 - Krishna":487,"SD25 - Hanuman":327,"SD25 - Ganesh":424,"M20 - Dino":122,"M20 - Dragon":70,"M20 - Giraffe":75,"M20 - Tiger":2,"M20 - Unicorn":2,"S12 - Unicorn":17,"S12 - Space":20,"DM25 - Ganpati":40,"DM25 - Hanuman":17}},"Chennai":{"lat":13.08,"lng":80.27,"skus":{"SD25 - Krishna":558,"SD25 - Hanuman":155,"SD25 - Ganesh":163,"M20 - Dino":65,"M20 - Dragon":154,"M20 - Giraffe":2,"M20 - Tiger":1,"M20 - Unicorn":33,"S12 - Unicorn":12,"S12 - Space":23}},"Nagpur":{"lat":21.15,"lng":79.09,"skus":{"SD25 - Krishna":2,"SD25 - Hanuman":21,"SD25 - Ganesh":34}},"Kolkata":{"lat":22.57,"lng":88.36,"skus":{"SD25 - Krishna":3,"SD25 - Hanuman":1,"SD25 - Ganesh":60,"M20 - Dino":1,"M20 - Giraffe":1,"M20 - Tiger":2,"M20 - Unicorn":1,"S12 - Unicorn":2}},"Coimbatore":{"lat":11.02,"lng":76.96,"skus":{"SD25 - Krishna":3,"SD25 - Ganesh":74,"M20 - Dino":9,"M20 - Dragon":10,"M20 - Unicorn":1,"DM25 - Ganpati":1}},"Bengaluru":{"lat":12.97,"lng":77.59,"skus":{"SD25 - Krishna":402,"SD25 - Hanuman":124,"SD25 - Ganesh":430,"M20 - Dino":120,"M20 - Dragon":110,"M20 - Giraffe":116,"M20 - Tiger":1,"M20 - Unicorn":9,"S12 - Unicorn":16,"S12 - Space":18,"DM25 - Ganpati":92,"DM25 - Hanuman":94}},"Delhi":{"lat":28.61,"lng":77.21,"skus":{"SD25 - Krishna":1,"SD25 - Hanuman":95,"SD25 - Ganesh":532,"M20 - Dino":149,"M20 - Dragon":137,"M20 - Giraffe":183,"M20 - Tiger":1,"M20 - Unicorn":28,"S12 - Unicorn":1,"S12 - Space":18,"S11 - Dino":1,"DM25 - Ganpati":108,"DM25 - Hanuman":79}},"Ahmedabad":{"lat":23.02,"lng":72.57,"skus":{"SD25 - Krishna":194,"SD25 - Hanuman":254,"SD25 - Ganesh":214,"M20 - Dino":2,"M20 - Dragon":9,"M20 - Giraffe":12,"M20 - Unicorn":11,"S12 - Unicorn":2,"S12 - Space":3}},"Punjab":{"lat":30.9,"lng":75.86,"skus":{"SD25 - Krishna":258,"SD25 - Hanuman":130,"SD25 - Ganesh":139,"M20 - Dragon":15}},"Lucknow":{"lat":26.85,"lng":80.95,"skus":{"SD25 - Krishna":545,"SD25 - Hanuman":123,"SD25 - Ganesh":235,"M20 - Dino":103,"M20 - Dragon":99,"M20 - Giraffe":74,"M20 - Tiger":1,"M20 - Unicorn":1,"DM25 - Ganpati":54,"DM25 - Hanuman":38}}};
+
+const LINES_DEF=[
+  {line:"SD25", hex:"#C32329", thresh:70,   skus:["SD25 - Ganesh","SD25 - Hanuman","SD25 - Krishna"]},
+  {line:"M20",  hex:"#2E7F77", thresh:40,   skus:["M20 - Dino","M20 - Dragon","M20 - Giraffe","M20 - Tiger","M20 - Unicorn"]},
+  {line:"SuperBuddy", hex:"#ED257F", thresh:null, skus:["S12 - Peppa","S12 - Unicorn","S12 - Space","S11 - Unicorn","S11 - Dino","S1 - Rabbito Red","S1 - Rabbito Blue"]},
+  {line:"DM25", hex:"#60C5BD", thresh:null, skus:["DM25 - Ganpati","DM25 - Hanuman"]}
+];
+const SKU_LINE={}, LINE_META={};
+LINES_DEF.forEach(l=>{LINE_META[l.line]=l; l.skus.forEach(s=>SKU_LINE[s]=l.line);});
+const ALL_SKUS=LINES_DEF.flatMap(l=>l.skus);
+const SHORT={"SD25 - Ganesh":"Ganesh","SD25 - Hanuman":"Hanuman","SD25 - Krishna":"Krishna","M20 - Dino":"Dino","M20 - Dragon":"Dragon","M20 - Giraffe":"Giraffe","M20 - Tiger":"Tiger","M20 - Unicorn":"Unicorn","S12 - Peppa":"S12 Peppa","S12 - Unicorn":"S12 Unicorn","S12 - Space":"S12 Space","S11 - Unicorn":"S11 Unicorn","S11 - Dino":"S11 Dino","S1 - Rabbito Red":"Rabbito R","S1 - Rabbito Blue":"Rabbito B","DM25 - Ganpati":"Ganpati","DM25 - Hanuman":"Hanuman"};
+const CITIES=Object.keys(INV_DATA);
+const qy=(city,sku)=>INV_DATA[city].skus[sku]||0;
+const lineTotal=(city,line)=>LINE_META[line].skus.reduce((a,s)=>a+qy(city,s),0);
+const cityTotal=city=>ALL_SKUS.reduce((a,s)=>a+qy(city,s),0);
+function scopeSkus(scope){ if(scope==="ALL")return ALL_SKUS; if(LINE_META[scope])return LINE_META[scope].skus; return [scope]; }
+function scopeVal(city,scope){ return scopeSkus(scope).reduce((a,s)=>a+qy(city,s),0); }
+function scopeHex(scope){ if(scope==="ALL")return "#60C5BD"; const ln=LINE_META[scope]?scope:SKU_LINE[scope]; return LINE_META[ln].hex; }
+function anyLow(city,line){ const t=LINE_META[line].thresh; if(t==null) return false; return LINE_META[line].skus.some(s=>qy(city,s)<t); }
+function isLow(city,scope){
+  if(scope==="ALL") return anyLow(city,"SD25")||anyLow(city,"M20");
+  if(LINE_META[scope]) return anyLow(city,scope);
+  const t=LINE_META[SKU_LINE[scope]].thresh; return t!=null && qy(city,scope)<t;
+}
+function skuLow(city,sku){ const t=LINE_META[SKU_LINE[sku]].thresh; return t!=null && qy(city,sku)<t; }
+(function(){const sel=document.getElementById("invFilter");let h=`<option value="ALL">All lines · combined</option>`;
+  LINES_DEF.forEach(l=>{h+=`<optgroup label="${l.line}${l.thresh?` (alert < ${l.thresh})`:``}"><option value="${l.line}">${l.line} — all SKUs</option>`;l.skus.forEach(s=>h+=`<option value="${s}">${SHORT[s]}</option>`);h+=`</optgroup>`;});
+  sel.innerHTML=h;})();
+
+const MAP_W=520, MAP_H=560;
+const GEO_URL="https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@ef25ebc/geojson/india.geojson";
+let mapReady=false, projection=null, gCircles=null, gDots=null, selectedCity=null;
+const tip=document.getElementById("mapTip");
+const currentScope=()=>document.getElementById("invFilter").value;
+
+async function initMap(){
+  const stage=document.getElementById("mapStage");
+  if(typeof d3==="undefined"){ document.getElementById("mapFallback").textContent="Map library unavailable — the table below still works."; return; }
+  let geo;
+  try{ geo=await d3.json(GEO_URL); }
+  catch(e){ const m="India map couldn’t load in this preview (external fetch blocked here). It renders on your live Netlify site — tables below are fully populated.";
+    document.getElementById("mapFallback").innerHTML=m; const sf=document.getElementById("salesFallback"); if(sf)sf.innerHTML=m; return; }
+  document.getElementById("mapFallback").remove();
+  const svg=d3.select(stage).append("svg").attr("viewBox",`0 0 ${MAP_W} ${MAP_H}`).attr("class","map-tilt");
+  projection=d3.geoMercator().fitSize([MAP_W,MAP_H-30],geo);
+  const path=d3.geoPath(projection);
+  svg.append("g").selectAll("path").data(geo.features).join("path").attr("d",path).attr("class","state");
+  gCircles=svg.append("g"); gDots=svg.append("g"); mapReady=true; renderInventory();
+  initSalesMap(geo,path);
+}
+function px200(city){ if(!projection)return 24; const c=INV_DATA[city]; const a=projection([c.lng,c.lat]); const b=projection([c.lng,c.lat+200/111]); return Math.abs(a[1]-b[1]); }
+function showTip(city,evt){
+  const low=isLow(city,currentScope());
+  const rows=LINES_DEF.map(l=>`<div class="trow"><span>${l.line}</span><b>${lineTotal(city,l.line).toLocaleString('en-IN')}</b></div>`).join("");
+  tip.innerHTML=`<h5>${city}${low?` <span class="low-badge">low</span>`:``}</h5>${rows}<div class="trow ttot"><span>Total</span><b>${cityTotal(city).toLocaleString('en-IN')}</b></div><div class="trow" style="margin-top:4px;color:var(--ink-faint)">click for SKU detail</div>`;
+  const rect=document.getElementById("mapStage").getBoundingClientRect();
+  let x=evt.clientX-rect.left+14, y=evt.clientY-rect.top+10; if(x>rect.width-190)x-=200;
+  tip.style.left=x+"px"; tip.style.top=y+"px"; tip.classList.add("show");
+}
+const hideTip=()=>tip.classList.remove("show");
+
+function renderInventory(){
+  const scope=currentScope();
+  if(mapReady){
+    const maxV=Math.max(1,...CITIES.map(c=>scopeVal(c,scope)));
+    const rScale=v=>3+Math.sqrt(v/maxV)*11;
+    const hex=scopeHex(scope);
+    gCircles.selectAll("circle").data(CITIES,d=>d).join("circle")
+      .attr("class",c=>"cov-circle"+(isLow(c,scope)?" low":""))
+      .attr("cx",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[0])
+      .attr("cy",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[1])
+      .attr("r",c=>px200(c))
+      .style("fill",c=>isLow(c,scope)?null:hex).style("stroke",c=>isLow(c,scope)?null:hex);
+    const dsel=gDots.selectAll("g.city").data(CITIES,d=>d);
+    const gEnter=dsel.enter().append("g").attr("class","city");
+    gEnter.append("circle").attr("class","city-dot");
+    gEnter.append("text").attr("class","city-label");
+    const merged=gEnter.merge(dsel);
+    merged.attr("transform",c=>{const p=projection([INV_DATA[c].lng,INV_DATA[c].lat]);return `translate(${p[0]},${p[1]})`;});
+    merged.select("circle.city-dot").attr("r",c=>rScale(scopeVal(c,scope))).classed("sel",c=>c===selectedCity).style("fill",hex)
+      .on("mousemove",(e,c)=>showTip(c,e)).on("mouseleave",hideTip)
+      .on("click",(e,c)=>{selectedCity=c;renderInventory();renderDetail(c);});
+    merged.select("text.city-label").text(c=>c).attr("x",c=>rScale(scopeVal(c,scope))+3).attr("y",3);
+  }
+  renderMatrix(scope);
+  if(!selectedCity) selectedCity=CITIES.slice().sort((a,b)=>cityTotal(b)-cityTotal(a))[0];
+  renderDetail(selectedCity);
+}
+function renderDetail(city){
+  const el=document.getElementById("invDetail");
+  const blocks=LINES_DEF.map(l=>{
+    const tot=lineTotal(city,l.line), low=l.thresh!=null&&tot<l.thresh;
+    const maxq=Math.max(1,...l.skus.map(s=>qy(city,s)));
+    const skuRows=l.skus.filter(s=>qy(city,s)>0).map(s=>{const v=qy(city,s);
+      return `<div class="detail-sku"><span class="nm">${SHORT[s]}</span><span class="bar"><i style="width:${Math.max(4,v/maxq*100)}%;background:${l.hex}"></i></span><span class="q">${v}</span></div>`;
+    }).join("")||`<div class="detail-empty">no stock in region</div>`;
+    return `<div class="detail-line"><div class="lh"><span class="chip" style="background:${l.hex}">${l.line}</span><span class="lt">${tot.toLocaleString('en-IN')} units${low?` · <b style="color:var(--down)">below ${l.thresh}</b>`:``}</span></div>${skuRows}</div>`;
+  }).join("");
+  el.innerHTML=`<h4>${city} <span style="font-size:12px;color:var(--ink-faint);font-weight:500">${cityTotal(city).toLocaleString('en-IN')} total</span></h4><div class="sub">SKU-level stock across this region's FBA centres</div>${blocks}`;
+}
+function renderMatrix(scope){
+  const wrap=document.getElementById("invMatrix");
+  const ORDER=[["Bengaluru","Bangalore"],["Chennai","Chennai"],["Delhi","Delhi"],["Hyderabad","Hyderabad"],["Kolkata","Kolkata"],["Lucknow","Lucknow"],["Mumbai","Mumbai"],["Punjab","Punjab"],["Ahmedabad","Ahemdabad"],["Nagpur","Nagpur"]];
+  const head=`<tr><th class="sku">SKU</th><th class="sub">Total Inv</th>${ORDER.map(c=>`<th>${c[1]}</th>`).join("")}</tr>`;
+  const colhead=`<tr class="rehead"><td class="sku">SKU</td><td class="sub">Total Inv</td>${ORDER.map(c=>`<td>${c[1]}</td>`).join("")}</tr>`;
+  let body="";
+  LINES_DEF.forEach((l,li)=>{
+    // line group header + repeated region headers (from the 2nd line onward)
+    body+=`<tr class="grouprow"><td class="sku" colspan="${ORDER.length+2}"><span class="chip" style="background:${l.hex}">${l.line}</span>${l.thresh?`<span class="thr">alert &lt; ${l.thresh}</span>`:``}</td></tr>`;
+    if(li>0) body+=colhead;
+    l.skus.forEach(s=>{
+      const rowTot=ORDER.reduce((a,c)=>a+qy(c[0],s),0);
+      const cells=ORDER.map(c=>{const v=qy(c[0],s); const low=skuLow(c[0],s);
+        return low?`<td class="low">${v}</td>`:(v?`<td>${v}</td>`:`<td class="cell0">·</td>`);}).join("");
+      body+=`<tr><td class="sku skucell">${SHORT[s]}</td><td class="sub">${rowTot.toLocaleString('en-IN')}</td>${cells}</tr>`;
+    });
+    // line subtotal
+    const lineRowTot=ORDER.reduce((a,c)=>a+lineTotal(c[0],l.line),0);
+    const subCells=ORDER.map(c=>{const lt=lineTotal(c[0],l.line); const low=l.thresh!=null&&lt<l.thresh;
+      return `<td class="sub ${low?'low':''}">${lt}</td>`;}).join("");
+    body+=`<tr class="linesub"><td class="sku">${l.line} total</td><td class="sub">${lineRowTot.toLocaleString('en-IN')}</td>${subCells}</tr>`;
+  });
+  // grand total row
+  const totCells=ORDER.map(c=>`<td class="sub">${cityTotal(c[0]).toLocaleString('en-IN')}</td>`).join("");
+  const grand=ORDER.reduce((a,c)=>a+cityTotal(c[0]),0);
+  const totrow=`<tr class="totrow"><td class="sku">Total SKU</td><td class="sub">${grand.toLocaleString('en-IN')}</td>${totCells}</tr>`;
+  wrap.innerHTML=`<table class="matrix"><thead>${head}</thead><tbody>${body}${totrow}</tbody></table>`;
+}
+initMap(); renderInventory();
+
+/* ============ SALES COVERAGE & REPLENISHMENT ============ */
+const RUN_RATE={"SD25 - Ganesh":1142,"SD25 - Hanuman":915,"SD25 - Krishna":3045,"M20 - Dino":381,"M20 - Dragon":612,"M20 - Giraffe":346,"M20 - Tiger":446,"M20 - Unicorn":555,"S12 - Peppa":0,"S12 - Unicorn":228,"S12 - Space":226,"S11 - Unicorn":52,"S11 - Dino":157,"S1 - Rabbito Red":26,"S1 - Rabbito Blue":0,"DM25 - Ganpati":175,"DM25 - Hanuman":245};
+const REGION_SHARE={"Mumbai":0.14009,"Bengaluru":0.18423,"Hyderabad":0.14615,"Delhi":0.1457,"Lucknow":0.10112,"Chennai":0.09153,"Ahmedabad":0.05639,"Punjab":0.03307,"Kolkata":0.07219,"Nagpur":0.02952};
+const BOX_QTY={"SD25":35,"M20":20,"SuperBuddy":12,"DM25":36};
+const COVER=1.25;
+document.getElementById("unkNote").textContent="~14.8%";
+
+/* ---- storage capacity (manual limits from Seller Central, in units) ---- */
+const REGION_SPACE={"Delhi":3470,"Chennai":3000,"Hyderabad":2950,"Lucknow":1723,"Bengaluru":4193,"Punjab":1500,"Mumbai":4840,"Ahmedabad":1500,"Kolkata":1500,"Nagpur":750};
+const spTotal=r=>REGION_SPACE[r]||0;
+const spUsed=r=>cityTotal(r);
+const spAvail=r=>Math.max(0,spTotal(r)-spUsed(r));
+const spReq=r=>regionShip(r,'ALL');            // active restock recommendation (all lines), excludes in-transit
+const spMore=r=>Math.max(0,spReq(r)-spAvail(r));
+const spUtil=r=>spTotal(r)?spUsed(r)/spTotal(r):0;
+
+const demandOf=(r,s)=>RUN_RATE[s]*(REGION_SHARE[r]||0);
+const targetOf=(r,s)=>COVER*demandOf(r,s);
+const boxOf=s=>BOX_QTY[SKU_LINE[s]];
+const shipOf=(r,s)=>{const g=targetOf(r,s)-qy(r,s); if(g<=0)return 0; const b=boxOf(s); return Math.ceil(g/b)*b;};
+const coverOf=(r,s)=>{const d=demandOf(r,s); return d>0?qy(r,s)/d:null;};
+function salesScopeSkus(scope){ if(scope==="ALL")return ALL_SKUS.filter(s=>RUN_RATE[s]>0); if(LINE_META[scope])return LINE_META[scope].skus.filter(s=>RUN_RATE[s]>0); return [scope]; }
+/* ---- team-shared in-transit tracker via Google Sheet (Apps Script Web App) ----
+   Paste your Apps Script /exec URL into SHEET_API below to enable team sync.
+   Leave blank and it stays in-memory (fine for previewing). ---- */
+const SHEET_API="https://script.google.com/macros/s/AKfycbwVXVoFRMB5eqDg3u8DQjZmKSbNxYeuTmu4ki6D43szRYxcZ8-LvicG-IF1bnE_Vp_A/exec"; // Apps Script Web App URL (Anyone)
+const SHEET_TOKEN="wb_k7Qm2Rx9Lp4Tn8"; // must match TOKEN in Apps Script
+const TK="&token="+encodeURIComponent(SHEET_TOKEN);
+let _memT={};
+const tkey=(r,s)=>r+'|'+s;
+const cssId=(r,s)=>(r+'_'+s).replace(/[^a-z0-9]/gi,'_');
+const loadT=()=>_memT;
+function inTransit(r,s){ return !!_memT[tkey(r,s)]; }
+async function refreshTransit(){
+  if(!SHEET_API) return;
+  try{ const res=await fetch(SHEET_API+'?action=list'+TK); const arr=await res.json(); const m={};
+    (arr||[]).forEach(e=>{ if(e&&e.key) m[e.key]={qty:+e.qty||0,fbaId:e.fbaId||'',reason:e.reason||'',markedInv:+e.markedInv||0,date:+e.date||Date.now()}; });
+    _memT=m;
+  }catch(e){/* offline / not configured — keep current */}
+}
+function postT(p){ if(!SHEET_API) return; try{ fetch(SHEET_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({token:SHEET_TOKEN},p))}); }catch(e){} }
+function autoClearTransit(){ const now=Date.now();
+  Object.keys(_memT).forEach(k=>{const [r,s]=k.split('|'); const e=_memT[k];
+    const arrived=qy(r,s)>=(e.markedInv||0)+(e.qty||0);
+    const covered=coverOf(r,s)!=null && coverOf(r,s)>=COVER;
+    const expired=e.date && (now-e.date)>14*864e5;
+    if(arrived||covered||expired){ delete _memT[k]; postT({action:'clear',key:k}); }});
+}
+const REASONS=["","Qty not available","Not enough Space","On Hold"];
+function upsertT(r,s){ const k=tkey(r,s); const e=_memT[k]; if(!e)return;
+  postT({action:'mark',key:k,region:r,sku:s,qty:e.qty,fbaId:e.fbaId||'',markedInv:e.markedInv,date:e.date,reason:e.reason||''}); }
+function toggleTransit(r,s,cb){ const k=tkey(r,s);
+  if(cb.checked){ const fi=document.getElementById('fba_'+cssId(r,s)); const qi=document.getElementById('qs_'+cssId(r,s)); const ri=document.getElementById('rs_'+cssId(r,s));
+    let qty=qi?parseInt(qi.value):shipOf(r,s); if(!(qty>0)) qty=shipOf(r,s);
+    _memT[k]={qty:qty,fbaId:fi?fi.value.trim():'',reason:ri?ri.value:'',markedInv:qy(r,s),date:Date.now()};
+    upsertT(r,s); }
+  else { delete _memT[k]; postT({action:'clear',key:k}); }
+  renderSales(); }
+function updateFba(r,s,val){ const k=tkey(r,s); if(_memT[k]){ _memT[k].fbaId=(val||'').trim(); upsertT(r,s); } }
+function updateQty(r,s,val){ const k=tkey(r,s); if(_memT[k]){ _memT[k].qty=Math.max(0,parseInt(val)||0); upsertT(r,s); renderSales(); } }
+function updateReason(r,s,val){ const k=tkey(r,s); if(_memT[k]){ _memT[k].reason=val||''; upsertT(r,s); } }
+function reasonSelect(r,s,cur,active){ const id=cssId(r,s);
+  const opts=REASONS.map(o=>`<option value="${o}"${o===(cur||'')?' selected':''}>${o||'—'}</option>`).join('');
+  return active?`<select id="rs_${id}" class="rs-in">${opts}</select>`:`<select class="rs-in" onchange="updateReason('${r}','${s}',this.value)">${opts}</select>`; }
+
+function regionShort(r,scope){ return salesScopeSkus(scope).filter(s=>shipOf(r,s)>0 && !inTransit(r,s)); }
+function regionDemand(r,scope){ return salesScopeSkus(scope).reduce((a,s)=>a+demandOf(r,s),0); }
+function regionShip(r,scope){ return salesScopeSkus(scope).reduce((a,s)=>a+(inTransit(r,s)?0:shipOf(r,s)),0); }
+
+(function(){const sel=document.getElementById("salesFilter");let h=`<option value="ALL">All lines · combined</option>`;
+  LINES_DEF.forEach(l=>{h+=`<optgroup label="${l.line}"><option value="${l.line}">${l.line} — all SKUs</option>`;l.skus.forEach(s=>{if(RUN_RATE[s]>0)h+=`<option value="${s}">${SHORT[s]}</option>`;});h+=`</optgroup>`;});
+  sel.innerHTML=h;})();
+const salesScope=()=>document.getElementById("salesFilter").value;
+let salesReady=false, gCov=null, gShare=null, selSalesRegion=null;
+(function(){const sel=document.getElementById("replRegion"); const opts=CITIES.slice().sort((a,b)=>(REGION_SHARE[b]||0)-(REGION_SHARE[a]||0));
+  sel.innerHTML=`<option value="ALL">All regions</option>`+opts.map(c=>`<option value="${c}">${c}</option>`).join(""); sel.value=opts[0]; selSalesRegion=opts[0];})();
+const replRegion=()=>document.getElementById("replRegion").value;
+function onReplRegionChange(){ const v=replRegion(); if(v!=="ALL"){ selSalesRegion=v; renderSalesDetail(v); } renderReplTable(salesScope()); }
+const stip=document.getElementById("salesTip");
+
+function initSalesMap(geo,path){
+  const stage=document.getElementById("salesMapStage");
+  document.getElementById("salesFallback").remove();
+  const svg=d3.select(stage).append("svg").attr("viewBox",`0 0 ${MAP_W} ${MAP_H}`).attr("class","map-tilt");
+  svg.append("g").selectAll("path").data(geo.features).join("path").attr("d",path).attr("class","state");
+  gCov=svg.append("g"); gShare=svg.append("g"); salesReady=true; renderSales();
+}
+function showStip(r,evt,scope){
+  const short=regionShort(r,scope), dem=regionDemand(r,scope), ship=regionShip(r,scope);
+  stip.innerHTML=`<h5>${r} ${short.length?`<span class="low-badge">restock</span>`:`<span class="low-badge" style="background:var(--up)">ok</span>`}</h5>`+
+    `<div class="trow"><span>Sales share</span><b>${((REGION_SHARE[r]||0)*100).toFixed(1)}%</b></div>`+
+    `<div class="trow"><span>Monthly demand</span><b>${Math.round(dem).toLocaleString('en-IN')}</b></div>`+
+    `<div class="trow"><span>SKUs under 125%</span><b>${short.length}</b></div>`+
+    `<div class="trow ttot"><span>Units to ship</span><b>${ship.toLocaleString('en-IN')}</b></div>`+
+    `<div class="trow" style="margin-top:4px;color:var(--ink-faint)">click for SKU detail</div>`;
+  const rect=document.getElementById("salesMapStage").getBoundingClientRect();
+  let x=evt.clientX-rect.left+14,y=evt.clientY-rect.top+10; if(x>rect.width-190)x-=200;
+  stip.style.left=x+"px"; stip.style.top=y+"px"; stip.classList.add("show");
+}
+const hideStip=()=>stip.classList.remove("show");
+
+function renderSales(){
+  const scope=salesScope();
+  autoClearTransit();
+  if(salesReady){
+    const shareVals=CITIES.map(c=>REGION_SHARE[c]||0), maxS=Math.max(...shareVals);
+    const rScale=v=>6+Math.sqrt(v/maxS)*22;
+    gCov.selectAll("circle").data(CITIES,d=>d).join("circle")
+      .attr("class",c=>"cov2 "+(regionShort(c,scope).length?"short":"ok"))
+      .attr("cx",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[0])
+      .attr("cy",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[1])
+      .attr("r",c=>rScale(REGION_SHARE[c]||0))
+      .style("cursor","pointer")
+      .on("mousemove",(e,c)=>showStip(c,e,scope)).on("mouseleave",hideStip)
+      .on("click",(e,c)=>{selSalesRegion=c; document.getElementById('replRegion').value=c; renderSalesDetail(c); renderReplTable(salesScope());});
+    const ls=gShare.selectAll("text").data(CITIES,d=>d);
+    ls.join("text").attr("class","share-lbl").attr("text-anchor","middle")
+      .attr("x",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[0])
+      .attr("y",c=>projection([INV_DATA[c].lng,INV_DATA[c].lat])[1]+3)
+      .text(c=>((REGION_SHARE[c]||0)*100).toFixed(0)+"%");
+  }
+  renderReplTable(scope);
+  renderCapTable();
+  if(!selSalesRegion) selSalesRegion=CITIES.slice().sort((a,b)=>(REGION_SHARE[b]||0)-(REGION_SHARE[a]||0))[0];
+  renderSalesDetail(selSalesRegion);
+}
+function renderSalesDetail(r){
+  const el=document.getElementById("salesDetail"), scope=salesScope();
+  const skus=salesScopeSkus(scope);
+  const rows=skus.map(s=>{
+    const dem=demandOf(r,s),cur=qy(r,s),cov=coverOf(r,s),ship=shipOf(r,s),it=inTransit(r,s);
+    const covTxt=cov==null?"—":(cov*100).toFixed(0)+"%";
+    const covCls=it?"cov-ok":(ship>0?"cov-bad":"cov-ok");
+    const shipCell=it?`<td class="ship" style="color:#3B7DD8">✈ transit</td>`:`<td class="ship">${ship?ship:"—"}</td>`;
+    const act=it?(loadT()[tkey(r,s)].qty||0):"—";
+    const actCell=`<td style="font-weight:700;color:#3B7DD8">${act}</td>`;
+    return `<tr><td style="text-align:left">${s}</td><td>${Math.round(dem)}</td><td>${cur}</td><td class="${covCls}">${covTxt}</td>${shipCell}${actCell}</tr>`;
+  }).join("");
+  const totShip=skus.reduce((a,s)=>a+shipOf(r,s),0);
+  const totAct=skus.reduce((a,s)=>a+(inTransit(r,s)?(loadT()[tkey(r,s)].qty||0):0),0);
+  el.innerHTML=`<h4>${r} <span style="font-size:12px;color:var(--ink-faint);font-weight:500">${((REGION_SHARE[r]||0)*100).toFixed(1)}% of national sales</span></h4>`+
+    `<div class="sub">Monthly demand vs current stock · ship to reach 125% coverage</div>`+
+    `<div class="cap-stats">`+
+      `<div class="cs"><span class="k">Total space</span><span class="v">${spTotal(r).toLocaleString('en-IN')}</span></div>`+
+      `<div class="cs"><span class="k">Used space</span><span class="v">${spUsed(r).toLocaleString('en-IN')} <i>(${(spUtil(r)*100).toFixed(0)}%)</i></span></div>`+
+      `<div class="cs"><span class="k">Available</span><span class="v">${spAvail(r).toLocaleString('en-IN')}</span></div>`+
+      `<div class="cs ${spMore(r)>0?'bad':'ok'}"><span class="k">More space required</span><span class="v">${spMore(r).toLocaleString('en-IN')}</span></div>`+
+    `</div>`+
+    `<table class="matrix repl"><thead><tr><th style="text-align:left" class="sku">SKU</th><th>Demand/mo</th><th>Current</th><th>Coverage</th><th>Ship</th><th>Actual shipped</th></tr></thead><tbody>${rows}`+
+    `<tr class="totrow"><td class="sku">Total</td><td></td><td></td><td></td><td class="ship">${totShip.toLocaleString('en-IN')}</td><td style="color:#3B7DD8">${totAct.toLocaleString('en-IN')}</td></tr></tbody></table>`;
+}
+function renderRegionSalesReturns(){
+  const salesWrap=document.getElementById("regionSalesTable");
+  const retWrap=document.getElementById("regionReturnsTable");
+  if(!salesWrap||!retWrap) return;
+  const cur="INR";
+  const salesRows=Object.entries(REGION_SALES_DATA).sort((a,b)=>b[1].sales-a[1].sales);
+  const totSales=salesRows.reduce((a,[,v])=>a+v.sales,0), totUnits=salesRows.reduce((a,[,v])=>a+v.units,0);
+  const sBody=salesRows.map(([r,v])=>`<tr><td class="sku" style="text-align:left">${r}</td><td>${fmt(v.sales,"money",cur)}</td><td>${v.units.toLocaleString('en-IN')}</td><td>${(v.sales/totSales*100).toFixed(1)}%</td></tr>`).join("");
+  salesWrap.innerHTML=`<table class="matrix"><thead><tr><th class="sku">Region</th><th>Est. Sales</th><th>Est. Units</th><th>% of Total</th></tr></thead><tbody>${sBody}`+
+    `<tr class="totrow"><td class="sku">All regions</td><td>${fmt(totSales,"money",cur)}</td><td>${totUnits.toLocaleString('en-IN')}</td><td>100.0%</td></tr></tbody></table>`;
+  const retRows=Object.entries(REGION_RETURNS_DATA).sort((a,b)=>b[1].returns-a[1].returns);
+  const totRet=retRows.reduce((a,[,v])=>a+v.returns,0);
+  const maxPct=Math.max(...retRows.map(([,v])=>v.pct));
+  const rBody=retRows.map(([r,v])=>`<tr><td class="sku" style="text-align:left">${r}</td><td>${v.returns}</td><td>${v.pct.toFixed(1)}%</td>`+
+    `<td><div class="ret-bar-track"><div class="ret-bar" style="width:${maxPct?v.pct/maxPct*100:0}%;background:${v.pct>=20?'var(--down)':(v.pct>=10?'#E0A106':'var(--up)')}"></div></div></td></tr>`).join("");
+  retWrap.innerHTML=`<table class="matrix"><thead><tr><th class="sku">Region</th><th>Returns</th><th>% of Total</th><th style="text-align:left">Share</th></tr></thead><tbody>${rBody}`+
+    `<tr class="totrow"><td class="sku">All regions</td><td>${totRet}</td><td>100.0%</td><td></td></tr></tbody></table>`;
+}
+function renderCapTable(){
+  const wrap=document.getElementById("capTable");
+  const barCol=u=>u>=0.9?'var(--down)':(u>=0.75?'#E0A106':'var(--up)');
+  const rows=CITIES.slice().sort((a,b)=>spMore(b)-spMore(a)||spUtil(b)-spUtil(a)).map(r=>{
+    const util=spUtil(r), pct=(util*100).toFixed(0), col=barCol(util), more=spMore(r);
+    return `<tr><td class="sku" style="text-align:left">${r}</td><td>${spTotal(r).toLocaleString('en-IN')}</td><td>${spUsed(r).toLocaleString('en-IN')}</td><td>${spAvail(r).toLocaleString('en-IN')}</td><td>${spReq(r).toLocaleString('en-IN')}</td><td class="more ${more>0?'bad':'ok'}">${more>0?more.toLocaleString('en-IN'):'0'}</td><td><div class="caputil"><div class="track"><i style="width:${Math.min(100,util*100)}%;background:${col}"></i></div><span class="pct" style="color:${col}">${pct}%</span></div></td></tr>`;
+  }).join("");
+  const T=CITIES.reduce((a,r)=>a+spTotal(r),0),U=CITIES.reduce((a,r)=>a+spUsed(r),0),A=CITIES.reduce((a,r)=>a+spAvail(r),0),Rq=CITIES.reduce((a,r)=>a+spReq(r),0),M=CITIES.reduce((a,r)=>a+spMore(r),0);
+  const uCol=barCol(T?U/T:0);
+  wrap.innerHTML=`<table class="matrix cap"><thead><tr><th class="sku">Region</th><th>Total space</th><th>Used space</th><th>Available</th><th>Recommended in</th><th>More space required</th><th>Utilization</th></tr></thead><tbody>${rows}`+
+    `<tr class="totrow"><td class="sku">All regions</td><td>${T.toLocaleString('en-IN')}</td><td>${U.toLocaleString('en-IN')}</td><td>${A.toLocaleString('en-IN')}</td><td>${Rq.toLocaleString('en-IN')}</td><td class="more ${M>0?'bad':'ok'}">${M.toLocaleString('en-IN')}</td><td><div class="caputil"><div class="track"><i style="width:${Math.min(100,T?U/T*100:0)}%;background:${uCol}"></i></div><span class="pct" style="color:${uCol}">${T?(U/T*100).toFixed(0):0}%</span></div></td></tr></tbody></table>`;
+}
+function renderReplTable(scope){
+  const wrap=document.getElementById("replTable");
+  const regFilter=replRegion();
+  const regions=regFilter==="ALL"?CITIES:[regFilter];
+  const recs=[], transit=[];
+  regions.forEach(r=>salesScopeSkus(scope).forEach(s=>{
+    if(inTransit(r,s)){ transit.push({r,s,e:loadT()[tkey(r,s)]}); return; }
+    const ship=shipOf(r,s); if(ship>0) recs.push({r,s,ship,dem:demandOf(r,s),tgt:targetOf(r,s),cur:qy(r,s),cov:coverOf(r,s),box:boxOf(s)});
+  }));
+  recs.sort((a,b)=>b.ship-a.ship);
+  if(!recs.length && !transit.length){ wrap.innerHTML=`<div style="padding:26px;text-align:center;color:var(--ink-soft)">${regFilter==="ALL"?"All regions are":regFilter+" is"} at or above 125% coverage for this selection. 🎉</div>`; return; }
+  const hdr=`<thead><tr><th class="sku">Region</th><th style="text-align:left">SKU</th><th>Line</th><th>Demand/mo</th><th>125% target</th><th>Current</th><th>Coverage</th><th>Ship units</th><th>Boxes</th><th>Mark shipped</th><th>Qty shipped</th><th>Reason (if less)</th><th style="text-align:left">FBA Shipment ID</th></tr></thead>`;
+  const rowHtml=x=>{const l=LINE_META[SKU_LINE[x.s]]; const id=cssId(x.r,x.s);
+    return `<tr><td class="sku" style="text-align:left"><span class="rchip" style="background:${l.hex}">${x.r}</span></td><td style="text-align:left">${x.s}</td><td>${l.line}</td><td>${Math.round(x.dem)}</td><td>${Math.round(x.tgt)}</td><td>${x.cur}</td><td class="cov-bad">${x.cov==null?"—":(x.cov*100).toFixed(0)+"%"}</td><td class="ship">${x.ship}</td><td>${x.ship/x.box} × ${x.box}</td><td style="text-align:center"><input type="checkbox" onchange="toggleTransit('${x.r}','${x.s}',this)"></td><td style="text-align:center"><input type="number" min="0" id="qs_${id}" class="qs-in" value="${x.ship}"></td><td style="text-align:center">${reasonSelect(x.r,x.s,'',true)}</td><td style="text-align:left"><input id="fba_${id}" class="fba-in" placeholder="FBA…" onchange="updateFba('${x.r}','${x.s}',this.value)"></td></tr>`;};
+  const body=recs.map(rowHtml).join("");
+  const totShip=recs.reduce((a,x)=>a+x.ship,0);
+  const totDem=recs.reduce((a,x)=>a+x.dem,0);
+  const totTgt=recs.reduce((a,x)=>a+x.tgt,0);
+  const totCur=recs.reduce((a,x)=>a+x.cur,0);
+  const tRows=transit.map(x=>{const l=LINE_META[SKU_LINE[x.s]]; const id=cssId(x.r,x.s);
+    return `<tr class="transitrow"><td class="sku" style="text-align:left"><span class="rchip" style="background:${l.hex}">${x.r}</span></td><td style="text-align:left">${x.s}</td><td>${l.line}</td><td colspan="5"><span class="tbadge">✈ In transit</span> &nbsp;marked ${new Date(x.e.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</td><td></td><td style="text-align:center"><input type="checkbox" checked onchange="toggleTransit('${x.r}','${x.s}',this)"></td><td style="text-align:center"><input type="number" min="0" class="qs-in" value="${x.e.qty}" onchange="updateQty('${x.r}','${x.s}',this.value)"></td><td style="text-align:center">${reasonSelect(x.r,x.s,x.e.reason,false)}</td><td style="text-align:left"><input id="fba_${id}" class="fba-in" value="${(x.e.fbaId||'').replace(/"/g,'&quot;')}" onchange="updateFba('${x.r}','${x.s}',this.value)"></td></tr>`;}).join("");
+  wrap.innerHTML=`<table class="matrix repl">${hdr}<tbody>${body}${tRows}`+
+    (recs.length?`<tr class="totrow"><td class="sku">${recs.length} to ship</td><td colspan="2"></td><td>${Math.round(totDem).toLocaleString('en-IN')}</td><td>${Math.round(totTgt).toLocaleString('en-IN')}</td><td>${totCur.toLocaleString('en-IN')}</td><td></td><td class="ship">${totShip.toLocaleString('en-IN')}</td><td colspan="5"></td></tr>`:``)+
+    `</tbody></table>`;
+}
+renderSales();
+refreshTransit().then(()=>renderSales());
+renderRegionSalesReturns();
+
+/* ============ REVIEWS & RATINGS ============ */
+const RATE_ALERT=4.1;
+const ASIN_INFO={}; DASHBOARD_DATA.india.lines.forEach(l=>l.skus.forEach(s=>{ASIN_INFO[s.asin]={sku:s.sku,line:l.name,hex:LINE_META[l.name].hex};}));
+const OWN_ASINS=Object.keys(ASIN_INFO);
+let REVIEWS={}, BADREV=[], COMPETITORS=[], selRevAsin=OWN_ASINS[0];
+const numv=v=>{const n=parseFloat(v);return isNaN(n)?null:n;};
+const intv=v=>{const n=parseInt((''+v).replace(/[^0-9-]/g,''));return isNaN(n)?null:n;};
+const rvOf=a=>REVIEWS[a]||{};
+function deltaMini(c,p,good){ if(c==null||p==null||c===p) return ''; const up=c>p; const g=(good==='up'&&up)||(good==='down'&&!up); let d=Math.abs(c-p); d=Number.isInteger(d)?d:Math.round(d*10)/10; return `<span class="delta-mini ${g?'up':'down'}">${up?'▲':'▼'}${d}</span>`; }
+
+async function refreshReviews(){
+  if(!SHEET_API) return;
+  try{
+    const [rvd,br,cp]=await Promise.all([
+      fetch(SHEET_API+'?action=reviews'+TK).then(r=>r.json()).catch(()=>[]),
+      fetch(SHEET_API+'?action=badreviews'+TK).then(r=>r.json()).catch(()=>[]),
+      fetch(SHEET_API+'?action=competitors'+TK).then(r=>r.json()).catch(()=>[])
+    ]);
+    REVIEWS={}; (rvd||[]).forEach(x=>{ if(x.asin) REVIEWS[String(x.asin).trim()]=x; });
+    BADREV=br||[]; COMPETITORS=cp||[];
+  }catch(e){}
+}
+function selRev(a){ selRevAsin=a; renderReviews(); }
+
+function renderReviews(){
+  const hasData=Object.keys(REVIEWS).length>0;
+  const below=OWN_ASINS.filter(a=>{const r=numv(rvOf(a).rating);return r!=null&&r<RATE_ALERT;});
+  const alertEl=document.getElementById('rev-alert');
+  if(!hasData){ alertEl.innerHTML=`<div class="rev-ok" style="background:var(--yellow-soft);border-color:#EBD888;color:#7a611a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>Connect your Reviews sheet to populate ratings (see setup guide). Showing your SKUs as placeholders below.</div>`; }
+  else if(below.length){ alertEl.innerHTML=`<div class="rev-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>${below.length} product${below.length>1?'s':''} below 4.1★ — ${below.map(a=>ASIN_INFO[a].sku).join(', ')}</div>`; }
+  else { alertEl.innerHTML=`<div class="rev-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>All products at or above 4.1★</div>`; }
+
+  document.getElementById('rev-rollup').innerHTML=DASHBOARD_DATA.india.lines.map(l=>{
+    const own=OWN_ASINS.filter(a=>ASIN_INFO[a].line===l.name);
+    let wr=0,wq=0,bl=0;
+    own.forEach(a=>{const x=rvOf(a);const r=numv(x.rating);const q=intv(x.reviews)||0;if(r!=null){wr+=r*q;wq+=q;if(r<RATE_ALERT)bl++;}});
+    const avg=wq?wr/wq:null, cls=avg==null?'':(avg<RATE_ALERT?'bad':'good');
+    return `<div class="card rcard ${cls}" style="--acc:${l.hex}"><div class="lbl">${l.name}</div><div class="rate">${avg==null?'—':avg.toFixed(2)}<span class="st">★</span></div><div class="row"><span class="prev">${wq.toLocaleString('en-IN')} reviews</span>${bl?`<span class="delta down">${bl} &lt;4.1</span>`:``}</div></div>`;
+  }).join("");
+
+  const ord=n=>DASHBOARD_DATA.india.lines.findIndex(l=>l.name===n);
+  const rows=OWN_ASINS.slice().sort((a,b)=>ord(ASIN_INFO[a].line)-ord(ASIN_INFO[b].line)).map(a=>{
+    const x=rvOf(a),inf=ASIN_INFO[a],r=numv(x.rating);
+    const rc=r==null?'—':`<span class="${r<RATE_ALERT?'rate-bad':'rate-good'}">${r.toFixed(1)}<span class="rev-star">★</span></span>${deltaMini(r,numv(x.ratingPrev),'up')}`;
+    const rev=intv(x.reviews), revc=rev==null?'—':`${rev.toLocaleString('en-IN')}${deltaMini(rev,intv(x.reviewsPrev),'up')}`;
+    const bsr=intv(x.bsr), bsrc=bsr==null?'—':`#${bsr.toLocaleString('en-IN')}${deltaMini(bsr,intv(x.bsrPrev),'down')}`;
+    const pr=(x.price!=null&&x.price!=='')?`₹${(''+x.price).replace(/[^0-9.]/g,'')}`:'—';
+    return `<tr class="${a===selRevAsin?'sel':''}" onclick="selRev('${a}')"><td class="sku" style="text-align:left">${inf.sku}</td><td>${inf.line}</td><td style="text-align:right">${rc}</td><td style="text-align:right">${revc}</td><td style="text-align:right">${bsrc}</td><td style="text-align:right">${pr}</td></tr>`;
+  }).join("");
+  document.getElementById('rev-table').innerHTML=`<table class="matrix rev-table"><thead><tr><th class="sku">SKU</th><th>Line</th><th style="text-align:right">Rating</th><th style="text-align:right">Reviews</th><th style="text-align:right">BSR</th><th style="text-align:right">Price</th></tr></thead><tbody>${rows}</tbody></table><div class="rev-hint">Tap a SKU to see its 3 most recent bad reviews →</div>`;
+  renderBadPanel(); renderCompetitors();
+}
+function renderBadPanel(){
+  const el=document.getElementById('rev-badpanel'), a=selRevAsin, inf=ASIN_INFO[a]||{};
+  const list=(BADREV||[]).filter(b=>String(b.asin).trim()===a).sort((x,y)=>new Date(y.date)-new Date(x.date)).slice(0,3);
+  const items=list.length?list.map(b=>{const st=Math.max(1,Math.min(5,Math.round(numv(b.stars)||1)));
+    return `<div class="badrev-item"><div class="top"><span class="stars">${'★'.repeat(st)}${'☆'.repeat(5-st)}</span><span class="dt">${b.date?new Date(b.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}</span></div><div class="txt">${(b.text||'').replace(/</g,'&lt;')}</div></div>`;}).join(""):`<div class="badrev-empty">No bad reviews logged for this SKU${Object.keys(REVIEWS).length?'':' yet'}.</div>`;
+  el.innerHTML=`<h4>Recent bad reviews <span style="font-size:12px;color:var(--ink-faint);font-weight:500">${inf.sku||''}</span></h4><div class="sub">Up to 3 most recent low-star reviews</div>${items}`;
+}
+function renderCompetitors(){
+  const wrap=document.getElementById('rev-competitors');
+  if(!COMPETITORS||!COMPETITORS.length){ wrap.innerHTML=`<div style="padding:22px;text-align:center;color:var(--ink-soft)">Add competitor ASINs to the <b>Competitors</b> tab to track their BSR here.</div>`; return; }
+  const rows=COMPETITORS.map(c=>{const bsr=intv(c.bsr);
+    return `<tr><td class="sku" style="text-align:left">${c.name||'—'}</td><td style="text-align:left">${c.asin||''}</td><td style="text-align:left">${c.category||''}</td><td style="text-align:right">${bsr==null?'—':'#'+bsr.toLocaleString('en-IN')}${deltaMini(bsr,intv(c.bsrPrev),'down')}</td></tr>`;}).join("");
+  wrap.innerHTML=`<table class="matrix"><thead><tr><th class="sku">Competitor</th><th style="text-align:left">ASIN</th><th style="text-align:left">Category</th><th style="text-align:right">BSR</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+renderReviews();
+refreshReviews().then(renderReviews);
+</script>
+</body>
+</html>
